@@ -1,0 +1,1 @@
+# Runtime dependencies shared by all components (versions to be agreed by the team)

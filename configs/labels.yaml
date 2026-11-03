@@ -1,0 +1,13 @@
+# Label definitions shared across components. Draft: finalize with docs/label_mapping.md.
+classification:
+  - hoax
+  - valid
+
+stance:
+  labels: [supports, refutes, unrelated]
+  # IndoNLI -> project label. Premise = clarification, hypothesis = input claim (to be confirmed
+  # and documented in docs/label_mapping.md so supports/refutes are not inverted).
+  indonli_mapping:
+    entailment: supports
+    contradiction: refutes
+    neutral: unrelated

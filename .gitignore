@@ -1,0 +1,45 @@
+# Environment
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Datasets: ignore contents, keep directory structure (.gitkeep).
+# "dir/**" + "!dir/**/" is required; "dir/*" would hide subfolders from the .gitkeep negation.
+# data/annotations/ is NOT ignored: manual CLAIM/TIME annotations are our own work product.
+data/raw/**
+data/interim/**
+data/processed/**
+!data/raw/**/
+!data/interim/**/
+!data/processed/**/
+!data/raw/**/.gitkeep
+!data/interim/**/.gitkeep
+!data/processed/**/.gitkeep
+
+# Model checkpoints and indexes
+artifacts/checkpoints/**
+artifacts/retrieval_indexes/**
+!artifacts/checkpoints/.gitkeep
+!artifacts/retrieval_indexes/.gitkeep
+
+# Run outputs (final tables for the report go to reports/)
+outputs/predictions/**
+outputs/metrics/**
+outputs/logs/**
+!outputs/predictions/.gitkeep
+!outputs/metrics/.gitkeep
+!outputs/logs/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
