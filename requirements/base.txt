@@ -1,1 +1,9 @@
-# Runtime dependencies shared by all components (versions to be agreed by the team)
+# Runtime dependencies shared by all components. Keep in sync with pyproject.toml [project.dependencies].
+numpy>=1.24
+pandas>=2.0
+pyyaml>=6.0
+scikit-learn>=1.3
+torch>=2.1
+transformers>=4.40
+sentence-transformers>=2.7
+rank-bm25>=0.2.2

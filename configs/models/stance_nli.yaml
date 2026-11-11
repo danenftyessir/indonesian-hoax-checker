@@ -1,0 +1,4 @@
+# Stance detection (task 3b). Base model NOT locked yet: IndoBERT-p1 or a multilingual NLI model.
+# Decided by Danendra; see docs/implementation_plan.md, "Hal yang perlu dicek".
+model_name: null
+labels_from: configs/labels.yaml#stance

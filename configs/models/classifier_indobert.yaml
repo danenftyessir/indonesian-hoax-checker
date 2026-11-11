@@ -1,0 +1,3 @@
+# Hoax classification, strong model (task 2). Hyperparameters to be filled in phase 3.
+model_name: indobenchmark/indobert-base-p1
+labels_from: configs/labels.yaml#classification

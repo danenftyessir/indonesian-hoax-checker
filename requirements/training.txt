@@ -1,2 +1,9 @@
-# Training/experiment dependencies
+# Training/experiment dependencies. Keep in sync with pyproject.toml [project.optional-dependencies].training
 -r base.txt
+datasets>=2.18
+accelerate>=0.27
+seqeval>=1.2.2
+pytorch-crf>=0.7.2
+huggingface-hub>=0.22
+kaggle>=1.6
+python-dotenv>=1.0

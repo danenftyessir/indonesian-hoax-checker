@@ -1,0 +1,4 @@
+# NER, strong model (task 1). Hyperparameters to be filled in phase 3.
+# p1, not p2: IndoNLU reports higher NERGrit F1 for p1 (docs/decisions/0004-skema-ner-dan-nerp.md).
+model_name: indobenchmark/indobert-base-p1
+labels_from: configs/labels.yaml#ner

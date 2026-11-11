@@ -1,3 +1,4 @@
-# Development dependencies
+# Development dependencies. Keep in sync with pyproject.toml [project.optional-dependencies].dev
 -r base.txt
-pytest
+pytest>=8.0
+ruff>=0.4

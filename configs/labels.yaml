@@ -1,12 +1,34 @@
-# Label definitions shared across components. Draft: finalize with docs/label_mapping.md.
+# Label definitions shared across components. Rationale and examples: docs/label_mapping.md.
+# Status: proposed (docs/decisions/), pending team approval on 2026-11-13.
+
 classification:
+  # Code and config use hoax/valid; the report writes "hoaks"/"valid" (never "fakta").
   - hoax
   - valid
 
+ner:
+  scheme: IOB2
+  types: [PER, ORG, LOC, TIME, CLAIM]
+  # Source corpus label -> project type. Unlisted types map to O.
+  nergrit_mapping:
+    PERSON: PER
+    ORGANISATION: ORG
+    PLACE: LOC
+  nerp_mapping:  # NERP is lower-cased: used only in the lower-case RQ1 variant, after dedup.
+    PPL: PER
+    PLC: LOC
+    IND: O
+    EVT: O
+    FNB: O
+
 stance:
   labels: [supports, refutes, unrelated]
-  # IndoNLI -> project label. Premise = clarification, hypothesis = input claim (to be confirmed
-  # and documented in docs/label_mapping.md so supports/refutes are not inverted).
+  # Pair direction: premise = refuted claim (from Komdigi/Mafindo), hypothesis = input claim.
+  # supports = input repeats the refuted claim (-> low credibility).
+  # refutes  = input denies the refuted claim.
+  pair:
+    premise: refuted_claim
+    hypothesis: input_claim
   indonli_mapping:
     entailment: supports
     contradiction: refutes
