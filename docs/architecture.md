@@ -80,14 +80,17 @@ python -m indonesian_hoax_checker            # mode interaktif
 
 `--verbose` menampilkan keluaran tiap tahap; `--task` menjalankan satu task saja. Status: argumen sudah ada, pipeline belum dipasang.
 
-Entitas NER sudah bisa dipakai langsung oleh task lain:
+Entitas NER sudah bisa dipakai langsung oleh task lain lewat tahap pipeline:
 
 ```python
-from indonesian_hoax_checker.ner.predict import NERPredictor
+from indonesian_hoax_checker.pipeline.stages import NERStage
 
-ner = NERPredictor("artifacts/checkpoints/ner/ner_indobert_seed42")  # checkpoint dari Drive hasil_training
-ner.predict("Pemerintah menghentikan bantuan MBG mulai bulan depan")  # -> NERResult
+ner = NERStage.from_config()  # checkpoint dari configs/pipeline.yaml
+ner("Pemerintah menghentikan bantuan MBG mulai bulan depan")  # -> NERResult
+ner.run_batch([...])          # banyak teks sekaligus, lebih cepat
 ```
+
+Checkpoint diambil dari `ner_results.zip` di Drive `hasil_training` (ekstrak di root repo). Bila `ner.checkpoint: null`, tahap ini berjalan sebagai **stub** (entitas kosong), supaya klasifikasi dan retrieval bisa dikembangkan sebelum model NER tersedia ([0005](decisions/0005-entitas-untuk-task-2-dan-3.md)).
 
 ## Risiko (dari diagram BEAM)
 
