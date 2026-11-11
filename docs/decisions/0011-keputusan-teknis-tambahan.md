@@ -19,7 +19,7 @@ Ditulis **manual** oleh annotator, tanpa model generatif, lalu diverifikasi oran
 - **Semua training model dijalankan lewat notebook di Google Colab (GPU)**, satu notebook per task di `notebooks/` (NER: `notebooks/02_ner/train_ner_colab.ipynb`). Notebook hanya memanggil kode di `src/`; logika tidak ditulis di notebook.
 - Alasan: MPS di Mac 16 GB kehabisan memori pada IndoBERT dan crash pada BiLSTM-CRF, dan semua angka laporan harus dari environment yang sama.
 - Laptop dipakai untuk menulis kode dan menjalankan test unit.
-- Checkpoint dan metrik disalin ke Google Drive di akhir notebook.
+- Hasil (ringkasan metrik dan zip checkpoint/prediksi) di-upload ke folder Drive tim `hasil_training` (https://drive.google.com/drive/folders/1Eq9C3SIW42xYpRn5UVAwoiLrRkOY52Pn), satu subfolder per run.
 
 ## 5. Akses data
 Tidak ada permintaan izin ke penulis mana pun. Data yang dipakai hanya yang bisa diunduh langsung atau lewat akun sendiri (login Kaggle, persetujuan gated HF untuk dataset BRIN). Dataset yang lisensinya tidak jelas (Cahyo dkk., 2025) tidak dipakai.
