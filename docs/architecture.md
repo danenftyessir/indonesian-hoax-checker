@@ -19,7 +19,7 @@ flowchart LR
 - Klasifikasi dan retrieval berjalan **paralel**, lalu digabung di `pipeline/confidence.py` ([0010](decisions/0010-klasifikasi-dan-retrieval-paralel.md)). Ini berbeda dari laporan desain awal, yang menjalankan retrieval setelah klasifikasi.
 - Basis klaim terbantah adalah data rujukan, bukan model; kemutakhirannya bergantung pada unduhan ulang berkala.
 
-## Aturan penggabungan (draf)
+## Aturan penggabungan
 
 | Klasifikasi | Bukti retrieval + stance | Indikasi |
 |---|---|---|
@@ -37,12 +37,12 @@ Didefinisikan di `src/indonesian_hoax_checker/common/schemas.py`:
 | Tipe | Isi |
 |---|---|
 | `Entity` | `text`, `label` (PER/ORG/LOC/TIME/CLAIM), `start`, `end` (posisi karakter) |
-| `NERResult` | `entities`, `core_claim` |
+| `NERResult` | `entities`, `core_claim` (span CLAIM pertama) |
 | `ClassificationResult` | `label` (`hoax`/`valid`), `confidence` 0–1 |
-| `RetrievalResult` | `matched_claim`, `clarification`, `similarity_score` (None bila tidak ada) |
+| `RetrievalResult` | `matched_claim`, `clarification`, `similarity_score`; tahap retrieval mengembalikan list top-k |
 | `StanceResult` | `label` (`supports`/`refutes`/`unrelated`), `confidence` |
 
-Masih draf. Yang perlu diputuskan: retrieval mengembalikan top-k sedangkan `RetrievalResult` hanya satu, dan `core_claim` untuk input multi-kalimat.
+Tahap retrieval mengembalikan `list[RetrievalResult]` (top-k, skor tertinggi dulu), dan `core_claim` = span CLAIM pertama ([0011](decisions/0011-keputusan-teknis-tambahan.md)).
 
 ## Modul
 
@@ -66,7 +66,7 @@ Masih draf. Yang perlu diputuskan: retrieval mengembalikan top-k sedangkan `Retr
 | NER | BiLSTM-CRF | `indobenchmark/indobert-base-p1` (fine-tune) |
 | Klasifikasi | TF-IDF + regresi logistik | `indobenchmark/indobert-base-p1` (fine-tune) |
 | Retrieval | BM25 | Sentence embedding siap pakai (mis. multilingual-e5), dipilih Danendra |
-| Stance | Ambang similarity | Model NLI (fine-tune), base belum dikunci |
+| Stance | Ambang similarity | `indobenchmark/indobert-base-p1` NLI (fine-tune) |
 
 Model terlatih disimpan di `artifacts/checkpoints/`, indeks retrieval di `artifacts/retrieval_indexes/`. Demo hanya memuat model, tidak melatih.
 

@@ -1,6 +1,6 @@
 # Data Dictionary
 
-Format file olahan di `data/processed/` dan anotasi di `data/annotations/`. Nama kolom ini **usulan**; ubah di sini dulu sebelum mengubah kode. Semua file teks UTF-8.
+Format file olahan di `data/processed/` dan anotasi di `data/annotations/`. Format ini menjadi acuan kode; bila perlu diubah, ubah di sini dulu. Semua file teks UTF-8.
 
 ## Basis klaim terbantah — `data/processed/refuted_claims/claims.jsonl`
 

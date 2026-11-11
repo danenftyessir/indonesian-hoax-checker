@@ -1,0 +1,13 @@
+# Lokasi unduhan dataset. File mentah disimpan di data/raw/ (tidak di-commit).
+
+ner:
+  nergrit:
+    base_url: https://raw.githubusercontent.com/IndoNLP/indonlu/master/dataset/nergrit_ner-grit
+    raw_dir: data/raw/ner/nergrit
+  nerp:
+    base_url: https://raw.githubusercontent.com/IndoNLP/indonlu/master/dataset/nerp_ner-prosa
+    raw_dir: data/raw/ner/nerp
+  # Label test IndoNLU disembunyikan, jadi yang dipakai hanya train dan valid
+  files:
+    train: train_preprocess.txt
+    valid: valid_preprocess.txt

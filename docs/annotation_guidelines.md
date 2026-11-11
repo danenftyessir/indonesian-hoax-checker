@@ -1,6 +1,6 @@
 # Annotation Guidelines
 
-Pedoman anotasi untuk label **CLAIM** dan **TIME** (task 1) serta **pasangan stance** (task 3b). Status: **draf v0.1**, direvisi setelah kalibrasi 100 kalimat. Pemilik: Jonathan.
+Pedoman anotasi untuk label **CLAIM** dan **TIME** (task 1) serta **pasangan stance** (task 3b). Versi: **1.0**. Bila kappa kalibrasi di bawah ambang, pedoman direvisi dan versinya dinaikkan. Pemilik: Jonathan.
 
 Contoh kalimat di dokumen ini dibuat untuk ilustrasi, bukan kutipan dari dataset.
 
@@ -47,12 +47,12 @@ Aturan:
 | 9 | pemerintah **[stop bansos]CLAIM** **[bsk]TIME** gaes!!! | Teks informal: singkatan tetap dilabel |
 | 10 | Menurut **[Komdigi]ORG**, informasi tersebut tidak benar | Pernyataan bantahan umum, bukan klaim spesifik → tanpa CLAIM |
 
-Contoh 5 dan 10 adalah kasus batas yang perlu dibahas saat kalibrasi.
+Contoh 5 dan 10 adalah kasus batas; ikuti anotasi di tabel ini.
 
 ### Proses
 
 1. **Kalibrasi:** ketiga anggota menganotasi 100 kalimat yang sama. Hitung Cohen's kappa per label (pasangan annotator, lalu rata-rata).
-2. Bila kappa CLAIM **< 0,6**: bahas kasus berbeda, revisi pedoman ini (naikkan versi), ulangi pada sampel baru.
+2. Bila kappa CLAIM **< 0,6**: pemilik pedoman (Jonathan) menambahkan aturan untuk kasus yang berbeda, menaikkan versi, lalu kalibrasi diulang pada sampel baru.
 3. Bila **≥ 0,6**: sisa kalimat dibagi, dua annotator per kalimat.
 4. **Adjudikasi:** perbedaan diselesaikan oleh annotator ketiga; hasil di `data/annotations/ner/seed_adjudicated.conll`.
 5. Catat setiap perubahan aturan di bagian *Riwayat* di bawah.
@@ -77,4 +77,4 @@ Aturan:
 
 | Versi | Tanggal | Perubahan |
 |---|---|---|
-| 0.1 | 2026-11-11 | Draf awal |
+| 1.0 | 2026-11-11 | Versi pertama |

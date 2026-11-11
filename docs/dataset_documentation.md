@@ -80,7 +80,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 |---|---|
 | Rifky/indonesian-hoax-news (HF) | Hanya judul; perluas basis klaim ke sebelum Des 2024 bila perlu (isi harus di-scrape ulang) |
 | Indonesian Fact and Hoax Political News (Kaggle) | Bukan data latih (tanpa lisensi); opsional sebagai uji domain politik |
-| Cahyo dkk. (2025), NER atas klarifikasi Komdigi | Seed dan pembanding anotasi CLAIM, bila penulis mengizinkan |
+| Cahyo dkk. (2025), NER atas klarifikasi Komdigi | Tidak dipakai sebagai data (lisensi tidak disebut, tim tidak meminta izin); hanya dikutip sebagai literatur |
 | IndoLEM NER (NER-UI, NER-UGM) | Opsional bila F1 NERGrit kurang |
 
 Ditolak: COVID-19 Indonesian misinformation tweets (hanya ID tweet), MultiClaim/SemEval-2025 Task 7 (protokol evaluasinya diadopsi, datanya tidak).

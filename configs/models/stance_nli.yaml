@@ -1,4 +1,4 @@
-# Stance detection (task 3b). Base model NOT locked yet: IndoBERT-p1 or a multilingual NLI model.
-# Decided by Danendra; see docs/implementation_plan.md, "Hal yang perlu dicek".
-model_name: null
+# Stance detection (task 3b). Hyperparameter diisi di fase 3.
+# Base model sama dengan NER dan klasifikasi (docs/decisions/0011-keputusan-teknis-tambahan.md).
+model_name: indobenchmark/indobert-base-p1
 labels_from: configs/labels.yaml#stance

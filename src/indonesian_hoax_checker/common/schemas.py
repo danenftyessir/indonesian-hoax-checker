@@ -1,5 +1,5 @@
 # Format data yang dikirim antar komponen (NER, klasifikasi, retrieval, stance).
-# Masih draf: disepakati bertiga, Danendra yang meninjau.
+# Aturan lengkap: docs/decisions/0011-keputusan-teknis-tambahan.md
 
 from typing import Literal, TypedDict
 
@@ -12,6 +12,7 @@ class Entity(TypedDict):
     end: int
 
 
+# core_claim = span CLAIM pertama di input, string kosong bila tidak ada
 class NERResult(TypedDict):
     entities: list[Entity]
     core_claim: str
@@ -23,7 +24,8 @@ class ClassificationResult(TypedDict):
     confidence: float
 
 
-# Bernilai None kalau tidak ada klaim terbantah yang mirip
+# Tahap retrieval mengembalikan list[RetrievalResult] (top-k, skor tertinggi dulu);
+# list kosong berarti tidak ada klaim terbantah yang mirip
 class RetrievalResult(TypedDict):
     matched_claim: str | None
     clarification: str | None
