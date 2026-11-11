@@ -27,7 +27,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
   - `excerpt` kosong 61%; kategori tunggal "Klarifikasi Hoaks".
   - `tags`/`topics` dipakai untuk hasil per kategori (kesehatan, politik, penipuan tautan). Dari 50 judul terbaru: 9 penipuan "Tautan ...", sekitar 10 foto/video/audio rekayasa AI.
   - Butuh login Kaggle untuk mengunduh.
-- **Unduhan tercatat:** versi `___`, tanggal `___` (isi saat pembekuan test set).
+- **Unduhan tercatat:** 11 Nov 2026 (file bertanggal 10 Nov 2026), versi Kaggle `___` (isi dari halaman dataset). 3.048 record, `published_at` 27 Des 2024 – 9 Nov 2026, 343 artikel sejak 1 Sep 2026. File diawali BOM (baca dengan `utf-8-sig`). Unduh ulang dan perbarui baris ini saat pembekuan test set.
 
 ### NERGrit (IndoNLU) — NER utama
 

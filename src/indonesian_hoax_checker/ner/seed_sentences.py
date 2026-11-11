@@ -25,8 +25,22 @@ MIN_TOKENS, MAX_TOKENS = 6, 60
 csv.field_size_limit(sys.maxsize)
 
 
+def _quotes_open(text: str) -> bool:
+    return text.count("“") != text.count("”") or text.count('"') % 2 == 1
+
+
+# Pecahan yang tanda kutipnya belum tertutup digabung dengan pecahan berikutnya,
+# supaya kalimat seperti: narasi “HEBOH!! Pemerintah ...” tidak terpotong di tengah kutipan
 def split_text(text: str) -> list[str]:
-    return [s.strip() for s in SENTENCE_BREAK.split(text or "") if s.strip()]
+    sentences, current = [], ""
+    for piece in SENTENCE_BREAK.split(text or ""):
+        current = f"{current} {piece}".strip() if current else piece.strip()
+        if current and not _quotes_open(current):
+            sentences.append(current)
+            current = ""
+    if current:
+        sentences.append(current)
+    return sentences
 
 
 def good_length(sentence: str) -> bool:
@@ -36,7 +50,8 @@ def good_length(sentence: str) -> bool:
 # Kalimat "Beredar ..." pertama dari tiap artikel Komdigi
 def komdigi_sentences(csv_path) -> list[dict]:
     rows = []
-    with open(csv_path, encoding="utf-8", newline="") as f:
+    # utf-8-sig: CSV Kaggle diawali BOM, tanpa ini kolom pertama terbaca "\ufeffid"
+    with open(csv_path, encoding="utf-8-sig", newline="") as f:
         for article in csv.DictReader(f):
             for sentence in split_text(article.get("body_text", "")):
                 sentence = PREFIX.sub("", sentence)

@@ -11,9 +11,14 @@ def test_split_text_handles_missing_space():
     assert split_text("Rabu (14/8) sore. Gus Yahya tiba?Pantauan ada.") == ["Rabu (14/8) sore.", "Gus Yahya tiba?", "Pantauan ada."]
 
 
+def test_split_text_keeps_quoted_sentence_whole():
+    text = "Beredar narasi “HEBOH!! Pemerintah menghentikan bantuan.” di Facebook. Faktanya salah."
+    assert split_text(text) == ["Beredar narasi “HEBOH!! Pemerintah menghentikan bantuan.” di Facebook.", "Faktanya salah."]
+
+
 def test_komdigi_takes_first_beredar_sentence(tmp_path):
     path = tmp_path / "k.csv"
-    with open(path, "w", newline="", encoding="utf-8") as f:
+    with open(path, "w", newline="", encoding="utf-8-sig") as f:  # pakai BOM seperti CSV Kaggle
         w = csv.DictWriter(f, ["id", "published_at", "body_text"])
         w.writeheader()
         w.writerow({"id": "7", "published_at": "2026-10-05T08:00:00", "body_text":
