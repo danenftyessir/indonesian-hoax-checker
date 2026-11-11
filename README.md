@@ -18,3 +18,16 @@ pytest
 ```
 
 See `docs/` for architecture, dataset documentation, and experiment protocol.
+
+## Audit data dan baseline klasifikasi
+
+Data mentah tidak ada di Git. Letakkan Mendeley (p3hfgr5j3m) yang sudah diekstrak di `data/raw/mendeley/`.
+
+```bash
+pip install -r requirements/audit.txt
+make audit-mendeley      # manifest tanpa teks + baseline (results/mendeley_baseline.json)
+make audit-mafindo       # audit shortcut Mafindo-2024 (mengunduh dataset dari Hugging Face)
+make baseline-mendeley   # baseline TF-IDF + LR, protokol diulang (results/mendeley_baseline_repeated.json)
+```
+
+Tanpa `make`: `python classification/data_audit/mendeley_audit.py --data-dir data/raw/mendeley`.

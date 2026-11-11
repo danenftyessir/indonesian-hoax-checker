@@ -1,0 +1,6 @@
+# Dependencies for classification/data_audit/*.py and classification/baseline.py.
+# Keep in sync with pyproject.toml [project.optional-dependencies].audit
+-r base.txt
+scipy>=1.10
+openpyxl>=3.1
+datasets>=2.18
