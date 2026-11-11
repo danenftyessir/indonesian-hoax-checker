@@ -1,0 +1,7 @@
+# RQ1 bilstm_crf: Augmentasi: +1 salinan informal data train
+base: configs/models/ner_bilstm_crf.yaml
+name: rq1_bilstm_crf_aug
+augment:
+  copies: 1
+extra_eval:
+  nergrit_test_informal: data/processed/ner/nergrit_test_informal.conll

@@ -1,0 +1,10 @@
+# RQ1 indobert: Semua huruf kecil, train NERGrit + NERP (dedup)
+base: configs/models/ner_indobert.yaml
+name: rq1_indobert_lower_nerp
+lowercase: true
+data:
+  train: [data/processed/ner/nergrit_train.conll, data/processed/ner/nerp_lower_train.conll]
+  dev: [data/processed/ner/nergrit_dev.conll, data/processed/ner/nerp_lower_dev.conll]
+extra_eval:
+  nergrit_test_informal: data/processed/ner/nergrit_test_informal.conll
+  nerp_lower_test: data/processed/ner/nerp_lower_test.conll

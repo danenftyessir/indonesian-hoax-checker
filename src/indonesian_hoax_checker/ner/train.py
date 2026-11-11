@@ -22,6 +22,8 @@ from indonesian_hoax_checker.ner.dataset import read_conll
 from indonesian_hoax_checker.ner.labels import LABEL2ID, LABELS, to_iob2
 from indonesian_hoax_checker.ner.metrics import entity_scores
 from indonesian_hoax_checker.ner.models import bilstm_crf, indobert
+from indonesian_hoax_checker.preprocessing.augment import augment_corpus
+from indonesian_hoax_checker.preprocessing.normalize import normalize as normalize_tokens
 
 
 def set_seed(seed: int) -> None:
@@ -47,11 +49,22 @@ def git_commit() -> str | None:
         return None
 
 
-def load_split(path: str, lowercase: bool):
-    sentences = read_conll(path)
+# path boleh satu file atau daftar file (digabung), mis. NERGrit + NERP untuk varian lowercase.
+# normalize/lowercase diterapkan ke token saja, label tidak berubah.
+def load_split(path, lowercase: bool = False, normalize: bool = False):
+    paths = path if isinstance(path, list) else [path]
+    sentences = [s for p in paths for s in read_conll(p)]
+    if normalize:
+        sentences = [(normalize_tokens(tokens), tags) for tokens, tags in sentences]
     if lowercase:
         sentences = [([t.lower() for t in tokens], tags) for tokens, tags in sentences]
     return sentences
+
+
+def load_tokens(tokens, lowercase=False, normalize=False):
+    if normalize:
+        tokens = normalize_tokens(tokens)
+    return [t.lower() for t in tokens] if lowercase else tokens
 
 
 def batches(items: list, size: int, shuffle: bool = False):
@@ -67,8 +80,14 @@ def batches(items: list, size: int, shuffle: bool = False):
 class BiLSTMRunner:
     def __init__(self, cfg, train, device):
         self.cfg, self.device = cfg, device
-        self.words, self.chars = bilstm_crf.build_vocabs([tokens for tokens, _ in train])
-        self.model = bilstm_crf.BiLSTMCRF(len(self.words), len(self.chars), len(LABELS), **cfg["model_args"]).to(device)
+        if cfg.get("init_from"):
+            # Tahap 2: lanjutkan dari model tahap 1, kamus diperluas dengan kata baru
+            self.model, self.words, self.chars, first_cfg = bilstm_crf.load(cfg["init_from"], device)
+            self.cfg = {**cfg, "model_args": first_cfg["model_args"]}
+            bilstm_crf.grow_vocab(self.model, self.words, self.chars, [tokens for tokens, _ in train])
+        else:
+            self.words, self.chars = bilstm_crf.build_vocabs([tokens for tokens, _ in train])
+            self.model = bilstm_crf.BiLSTMCRF(len(self.words), len(self.chars), len(LABELS), **cfg["model_args"]).to(device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg["lr"])
 
     def train_epoch(self, train):
@@ -85,21 +104,11 @@ class BiLSTMRunner:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), 5.0)
             self.optimizer.step()
 
-    @torch.no_grad()
     def predict(self, token_lists):
-        self.model.eval()
-        preds = []
-        for batch in batches(token_lists, 64):
-            word_ids, char_ids, mask = bilstm_crf.encode_batch(batch, self.words, self.chars)
-            for ids in self.model.decode(word_ids.to(self.device), char_ids.to(self.device), mask.to(self.device)):
-                preds.append([LABELS[i] for i in ids])
-        return preds
+        return bilstm_crf.predict(self.model, self.words, self.chars, token_lists, self.device)
 
     def save(self, out_dir: Path):
-        out_dir.mkdir(parents=True, exist_ok=True)
-        torch.save(self.model.state_dict(), out_dir / "model.pt")
-        (out_dir / "vocab.json").write_text(json.dumps({"words": self.words.itos, "chars": self.chars.itos}))
-        (out_dir / "config.json").write_text(json.dumps(self.cfg, indent=2))
+        bilstm_crf.save(out_dir, self.model, self.words, self.chars, self.cfg)
 
     def load_best(self, out_dir: Path):
         self.model.load_state_dict(torch.load(out_dir / "model.pt", map_location=self.device))
@@ -112,7 +121,8 @@ class IndoBERTRunner:
         from transformers import get_linear_schedule_with_warmup
 
         self.cfg, self.device = cfg, device
-        self.tokenizer, self.model = indobert.load(cfg["model_name"])
+        # Tahap 2: mulai dari checkpoint tahap 1, bukan dari model dasar
+        self.tokenizer, self.model = indobert.load(cfg.get("init_from") or cfg["model_name"])
         self.model.to(device)
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=cfg["lr"], weight_decay=cfg.get("weight_decay", 0.01))
         total = cfg["epochs"] * ((len(train) + cfg["batch_size"] - 1) // cfg["batch_size"])
@@ -129,15 +139,8 @@ class IndoBERTRunner:
             self.optimizer.step()
             self.scheduler.step()
 
-    @torch.no_grad()
     def predict(self, token_lists):
-        self.model.eval()
-        preds = []
-        for batch in batches(token_lists, 32):
-            enc = indobert.encode_batch(self.tokenizer, batch, max_length=self.cfg["max_length"])
-            logits = self.model(**{k: v.to(self.device) for k, v in enc.items()}).logits.cpu()
-            preds.extend(indobert.word_predictions(enc, logits, batch))
-        return preds
+        return indobert.predict(self.model, self.tokenizer, token_lists, self.device, self.cfg["max_length"])
 
     def save(self, out_dir: Path):
         self.model.save_pretrained(out_dir)
@@ -163,9 +166,16 @@ def evaluate(runner, sentences):
 
 def run(cfg: dict, seed: int) -> dict:
     set_seed(seed)
+    if cfg.get("init_from"):
+        # init_from boleh memuat {seed}, mis. artifacts/checkpoints/ner/ner_indobert_seed{seed}
+        cfg = {**cfg, "init_from": cfg["init_from"].format(seed=seed)}
     device = get_device(cfg.get("device", "auto"))
-    lowercase = cfg.get("lowercase", False)
-    train, dev, test = (load_split(cfg["data"][s], lowercase) for s in ("train", "dev", "test"))
+    lowercase, normalize = cfg.get("lowercase", False), cfg.get("normalize", False)
+    train, dev, test = (load_split(cfg["data"][s], lowercase, normalize) for s in ("train", "dev", "test"))
+    if cfg.get("augment"):
+        # Tambah salinan informal dari data train (RQ1); dev/test tidak diubah
+        copies = augment_corpus(train, copies=cfg["augment"].get("copies", 1), seed=seed)
+        train = train + [(load_tokens(t, lowercase, normalize), g) for t, g in copies]
 
     run_name = f"{cfg['name']}_seed{seed}"
     ckpt_dir = Path("artifacts/checkpoints/ner") / run_name
@@ -193,6 +203,12 @@ def run(cfg: dict, seed: int) -> dict:
         "git_commit": git_commit(), "best_epoch": best_epoch, "data": cfg["data"],
         "dev": dev_scores, "test": test_scores,
     }
+    # Evaluasi tambahan, mis. NERGrit test pada model tahap 2 untuk cek PER/ORG/LOC tidak turun
+    for name, path in cfg.get("extra_eval", {}).items():
+        if not Path(path).exists():
+            print(f"[{run_name}] lewati evaluasi {name}: {path} belum ada", flush=True)
+            continue
+        result.setdefault("extra", {})[name] = evaluate(runner, load_split(path, lowercase, normalize))[0]
     Path("outputs/metrics").mkdir(parents=True, exist_ok=True)
     Path(f"outputs/metrics/{run_name}.json").write_text(json.dumps(result, indent=2))
 
@@ -206,6 +222,15 @@ def run(cfg: dict, seed: int) -> dict:
     return result
 
 
+# Config boleh punya "base: <file>" untuk mewarisi config lain; isi file ini menimpa base
+def load_config(path) -> dict:
+    cfg = yaml.safe_load(Path(path).read_text())
+    if "base" in cfg:
+        parent = load_config(cfg.pop("base"))
+        cfg = {**parent, **cfg, "data": {**parent.get("data", {}), **cfg.get("data", {})}}
+    return cfg
+
+
 def summarize(name: str, results: list[dict]) -> dict:
     def mean_std(values):
         return {"mean": statistics.mean(values), "std": statistics.stdev(values) if len(values) > 1 else 0.0}
@@ -217,6 +242,8 @@ def summarize(name: str, results: list[dict]) -> dict:
         "test_f1": mean_std([r["test"]["f1"] for r in results]),
         "test_f1_per_type": {t: mean_std([r["test"]["per_type"].get(t, {"f1": 0.0})["f1"] for r in results]) for t in types},
         "dev_f1": mean_std([r["dev"]["f1"] for r in results]),
+        "extra_f1": {k: mean_std([r["extra"][k]["f1"] for r in results if k in r.get("extra", {})])
+                     for k in results[0].get("extra", {})},
     }
     Path(f"outputs/metrics/{name}_summary.json").write_text(json.dumps(summary, indent=2))
     return summary
@@ -228,7 +255,7 @@ def main() -> None:
     parser.add_argument("--seeds", type=int, nargs="+", default=[13, 42, 2026])
     args = parser.parse_args()
 
-    cfg = yaml.safe_load(Path(args.config).read_text())
+    cfg = load_config(args.config)
     results = [run(cfg, seed) for seed in args.seeds]
     print(json.dumps(summarize(cfg["name"], results), indent=2))
 

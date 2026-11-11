@@ -46,3 +46,15 @@ def word_predictions(enc, logits, batch_tokens) -> list[list[str]]:
             prev = word
         results.append(tags)
     return results
+
+
+@torch.no_grad()
+def predict(model, tokenizer, token_lists, device, max_length=256, batch_size=32) -> list[list[str]]:
+    model.eval()
+    preds = []
+    for i in range(0, len(token_lists), batch_size):
+        batch = token_lists[i:i + batch_size]
+        enc = encode_batch(tokenizer, batch, max_length=max_length)
+        logits = model(**{k: v.to(device) for k, v in enc.items()}).logits.cpu()
+        preds.extend(word_predictions(enc, logits, batch))
+    return preds

@@ -49,13 +49,33 @@ Aturan:
 
 Contoh 5 dan 10 adalah kasus batas; ikuti anotasi di tabel ini.
 
+### Alat: Label Studio
+
+Label Studio dijalankan lokal (`pip install label-studio`, lalu `label-studio start`). Buat proyek dengan konfigurasi `configs/annotation/label_studio_ner.xml`.
+
+1. Buat `data/annotations/ner/seed_sentences.jsonl` (format di [data_dictionary.md](data_dictionary.md)):
+   `python -m indonesian_hoax_checker.ner.seed_sentences`
+   Skrip ini memilih 300 kalimat "Beredar ..." dari CSV Komdigi (unduh dulu dari Kaggle, lihat `configs/data_sources.yaml`) dan 100 kalimat pertama berita benar Mafindo-2024 (split train). 100 kalimat ditandai `batch: calibration` (75 Komdigi + 25 Mafindo).
+   Kalimat uji informal (30, ditulis tim) disimpan terpisah di `data/annotations/ner/informal_sentences.jsonl`; contoh format di `informal_sentences.example.jsonl`. Tulis kalimat yang realistis seperti pesan WhatsApp/media sosial, bukan salinan contoh.
+2. Buat file impor berisi pra-anotasi, mulai dari batch kalibrasi:
+   `python -m indonesian_hoax_checker.ner.annotation tasks --batch calibration --checkpoint <checkpoint NER baseline>`
+   Setelah kappa lolos: `--batch main`, lalu kalimat informal dengan `--input data/annotations/ner/informal_sentences.jsonl`.
+   TIME diisi dari aturan (`ner/time_rules.py`), PER/ORG/LOC dari model baseline (tanpa `--checkpoint`: hanya TIME). CLAIM selalu manual.
+3. Impor `label_studio_tasks.json` ke proyek. Annotator **mengoreksi** pra-anotasi, bukan menerimanya begitu saja.
+4. Ekspor hasil sebagai JSON ke `data/annotations/ner/export_<tanggal>.json`.
+
 ### Proses
 
-1. **Kalibrasi:** ketiga anggota menganotasi 100 kalimat yang sama. Hitung Cohen's kappa per label (pasangan annotator, lalu rata-rata).
+1. **Kalibrasi:** ketiga anggota menganotasi 100 kalimat yang sama. Hitung kappa:
+   `python -m indonesian_hoax_checker.ner.annotation kappa --export <ekspor>`
+   (Cohen's kappa per label tingkat token, rata-rata semua pasangan annotator.)
 2. Bila kappa CLAIM **< 0,6**: pemilik pedoman (Jonathan) menambahkan aturan untuk kasus yang berbeda, menaikkan versi, lalu kalibrasi diulang pada sampel baru.
 3. Bila **≥ 0,6**: sisa kalimat dibagi, dua annotator per kalimat.
-4. **Adjudikasi:** perbedaan diselesaikan oleh annotator ketiga; hasil di `data/annotations/ner/seed_adjudicated.conll`.
-5. Catat setiap perubahan aturan di bagian *Riwayat* di bawah.
+4. **Adjudikasi:** kalimat yang anotasinya berbeda dianotasi ulang oleh annotator ketiga (adjudikator), lalu:
+   `python -m indonesian_hoax_checker.ner.annotation build --export <ekspor> --adjudicator <email adjudikator>`
+   Hasil: `data/annotations/ner/seed_adjudicated.jsonl`. Kalimat yang masih berbeda dan belum diadjudikasi dicetak dan tidak ikut.
+5. **Split:** `python -m indonesian_hoax_checker.ner.annotation split` membuat `seed_{train,dev,test}.conll` (dev 50, test 50; kalimat Komdigi sejak 1 Sep 2026 wajib masuk test) dan `seed_informal_test.conll` dari kalimat informal. Langkah ini juga dijalankan otomatis di notebook Colab.
+6. Catat setiap perubahan aturan di bagian *Riwayat* di bawah.
 
 ## Bagian B — Pasangan stance
 

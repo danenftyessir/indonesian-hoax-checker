@@ -3,6 +3,7 @@
 #
 # Hasil di data/processed/ner/:
 #   nergrit_{train,dev,test}.conll     data utama (cased)
+#   *_test_informal.conll              versi informal sintetis dari test (RQ1)
 #   nerp_lower_{train,dev,test}.conll  hanya untuk varian lowercase RQ1
 #   stats.json                         jumlah kalimat dan span
 # test = file valid IndoNLU (label test asli disembunyikan), dev = 10% train untuk early stopping.
@@ -18,6 +19,7 @@ import yaml
 
 from indonesian_hoax_checker.ner.dataset import Sentence, dedup, read_conll, write_conll
 from indonesian_hoax_checker.ner.labels import NERGRIT_MAPPING, NERP_MAPPING, get_spans, map_tag, to_iob2
+from indonesian_hoax_checker.preprocessing.augment import TEST_PROBS, augment_corpus
 
 SOURCES = {"nergrit": ("nergrit", NERGRIT_MAPPING), "nerp": ("nerp_lower", NERP_MAPPING)}
 
@@ -63,7 +65,9 @@ def prepare(config_path: str, out_dir: str, dev_ratio: float, seed: int) -> dict
         test = dedup(convert(valid_raw, mapping), exclude=train)
         train, dev = split_dev(train, dev_ratio, seed)
 
-        for split, data in (("train", train), ("dev", dev), ("test", test)):
+        # Set uji informal sintetis (RQ1): versi informal dari test, seed tetap supaya sama untuk semua run
+        test_informal = augment_corpus(test, seed=2026, probs=TEST_PROBS)
+        for split, data in (("train", train), ("dev", dev), ("test", test), ("test_informal", test_informal)):
             write_conll(Path(out_dir) / f"{out_name}_{split}.conll", data)
         stats[out_name] = {
             "raw": {"train": len(train_raw), "valid": len(valid_raw)},

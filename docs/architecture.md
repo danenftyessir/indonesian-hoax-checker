@@ -80,6 +80,15 @@ python -m indonesian_hoax_checker            # mode interaktif
 
 `--verbose` menampilkan keluaran tiap tahap; `--task` menjalankan satu task saja. Status: argumen sudah ada, pipeline belum dipasang.
 
+Entitas NER sudah bisa dipakai langsung oleh task lain:
+
+```python
+from indonesian_hoax_checker.ner.predict import NERPredictor
+
+ner = NERPredictor("artifacts/checkpoints/ner/ner_indobert_seed42")  # checkpoint dari Drive hasil_training
+ner.predict("Pemerintah menghentikan bantuan MBG mulai bulan depan")  # -> NERResult
+```
+
 ## Risiko (dari diagram BEAM)
 
 | Risiko | Muncul di | Kontrol | Metrik |

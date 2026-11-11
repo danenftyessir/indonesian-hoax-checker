@@ -75,3 +75,43 @@ def test_bilstm_crf_forward():
     loss = model.loss(word_ids, char_ids, mask, torch.zeros_like(word_ids))
     assert loss.item() > 0
     assert [len(p) for p in model.decode(word_ids, char_ids, mask)] == [3, 1]
+
+
+def test_tokenize_offsets_and_sentences():
+    from indonesian_hoax_checker.preprocessing.tokenizer import split_sentences, tokenize
+
+    text = "Harga naik jadi Rp13.000, kata e-KTP!!! Bsk 1 Des."
+    tokens = tokenize(text)
+    assert [t for t, _, _ in tokens][:5] == ["Harga", "naik", "jadi", "Rp13.000", ","]
+    assert all(text[s:e] == t for t, s, e in tokens)
+    assert [len(s) for s in split_sentences(tokens)] == [10, 4]
+
+
+def test_to_entities_uses_character_offsets():
+    from indonesian_hoax_checker.ner.predict import to_entities, to_result
+    from indonesian_hoax_checker.preprocessing.tokenizer import tokenize
+
+    text = "Pemerintah menghentikan  bantuan MBG bulan depan"
+    tokens = tokenize(text)
+    tags = ["B-ORG", "B-CLAIM", "I-CLAIM", "I-CLAIM", "B-TIME", "I-TIME"]
+    result = to_result(to_entities(text, tokens, tags))
+    assert result["entities"][0] == {"text": "Pemerintah", "label": "ORG", "start": 0, "end": 10}
+    assert result["core_claim"] == "menghentikan  bantuan MBG"
+    assert result["entities"][2]["text"] == "bulan depan"
+    assert to_result([])["core_claim"] == ""
+
+
+def test_predictor_loads_bilstm_checkpoint(tmp_path):
+    from indonesian_hoax_checker.ner.labels import LABELS
+    from indonesian_hoax_checker.ner.models import bilstm_crf
+    from indonesian_hoax_checker.ner.predict import NERPredictor
+
+    words, chars = bilstm_crf.build_vocabs([["Joko", "ke", "Bandung", "."]])
+    args = {"word_dim": 8, "char_dim": 4, "char_filters": 6, "hidden": 10, "dropout": 0.0}
+    model = bilstm_crf.BiLSTMCRF(len(words), len(chars), len(LABELS), **args)
+    bilstm_crf.save(tmp_path, model, words, chars, {"model_args": args})
+
+    predictor = NERPredictor(str(tmp_path), device="cpu")
+    results = predictor.predict_batch(["Joko ke Bandung. Halo!", ""])
+    assert set(results[0]) == {"entities", "core_claim"}
+    assert results[1] == {"entities": [], "core_claim": ""}

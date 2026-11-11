@@ -11,3 +11,14 @@ ner:
   files:
     train: train_preprocess.txt
     valid: valid_preprocess.txt
+
+refuted_claims:
+  # Butuh login Kaggle (KAGGLE_USERNAME/KAGGLE_KEY di .env):
+  #   kaggle datasets download ireddragonicy/indonesian-hoax-news-dataset -p data/raw/refuted_claims --unzip
+  kaggle: ireddragonicy/indonesian-hoax-news-dataset
+  csv: data/raw/refuted_claims/komdigi_hoaks.csv
+
+classifier:
+  mafindo2024:
+    huggingface: umn-cyber/mafindo-2024   # publik, kolom title, content, is_hoax
+    cache_dir: data/raw/classifier/mafindo2024
