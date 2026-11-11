@@ -21,8 +21,6 @@ See `docs/` for architecture, dataset documentation, and experiment protocol.
 
 ## Audit data dan baseline klasifikasi
 
-Data mentah tidak ada di Git. Letakkan Mendeley (p3hfgr5j3m) yang sudah diekstrak di `data/raw/mendeley/`.
-
 ```bash
 pip install -r requirements/audit.txt
 make audit-mendeley      # manifest tanpa teks + baseline (results/mendeley_baseline.json)

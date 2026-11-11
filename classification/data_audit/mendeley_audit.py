@@ -1,22 +1,5 @@
-#!/usr/bin/env python3
-"""Audit + cleaning for Mendeley "Indonesian Hoax News Detection Dataset" (p3hfgr5j3m, 600-item version).
+# Audit dataset Mendeley "Indonesian Hoax News Detection Dataset"
 
-What it does
-  1. Reads the 600-item CSV (labels, article text) and the labelling workbook (URL + 3 reviewer votes per article).
-  2. Rebuilds labels from reviewer votes (majority of R1-R3) and flags CSV rows that disagree.
-  3. Adds topic, domain, URL year, duplicate-URL group, near-duplicate cluster (TF-IDF cosine >= 0.8, same topic).
-  4. Writes a manifest CSV WITHOUT article text (third-party content). `text_sha1` lets you join back to your local CSV.
-  5. Runs baselines under 3 split protocols + domain-only baseline, with bootstrap 95% CIs, and writes JSON.
-
-Usage
-  python mendeley_audit.py --data-dir data/raw/mendeley \
-      --out-manifest data/manifests/mendeley_manifest.csv \
-      --out-results results/mendeley_baseline.json
-  (--skip-experiments to only build the manifest)
-
---data-dir may contain the extracted files or the downloaded zip(s); nested zips are extracted automatically.
-Requires: pandas numpy scipy scikit-learn openpyxl
-"""
 import argparse, hashlib, json, re, sys, zipfile
 from pathlib import Path
 from urllib.parse import urlparse
@@ -44,7 +27,8 @@ TOPIC_NAMES = {
     "KW9": "pelemparan Al-Qur'an di Mako Brimob", "KW10": "CTO Traveloka walk out saat Anies pidato",
     "KW11": "Facebook akan tutup di Indonesia", "KW12": "gaji Presiden naik",
 }
-# Heuristics (documented, crude): used only for flags, not for labels.
+
+# Heuristics
 DEBUNK_RE = re.compile(r"\bhoa?ks?\b|\bhoax\b|klarifikasi|bantah|dibantah|tidak benar|bukan fakta|faktanya|mitos|isu bahwa|kabar bohong|menepis|menegaskan")
 MAINSTREAM = ["kompas", "detik", "tempo", "viva", "republika", "tribunnews", "merdeka", "metrotvnews", "liputan6",
               "okezone", "cnnindonesia", "antaranews", "sindonews", "jawapos", "suara.com", "bisnis.com",
@@ -55,7 +39,7 @@ def find_file(root: Path, name: str) -> Path:
     hits = list(root.rglob(name))
     if hits:
         return hits[0]
-    for z in list(root.rglob("*.zip")):            # extract (nested) zips on demand
+    for z in list(root.rglob("*.zip")):            
         out = z.parent / f"_extracted_{z.stem}"
         if not out.exists():
             with zipfile.ZipFile(z) as zf:
@@ -75,7 +59,6 @@ def find_file(root: Path, name: str) -> Path:
 
 
 def rating(x):
-    """Normalise reviewer cells; tolerates typos seen in the file ('haox', 'ho'). Non-ratings -> None."""
     if x is None:
         return None
     s = str(x).strip().lower()
@@ -85,12 +68,12 @@ def rating(x):
 def load_votes(path: Path) -> pd.DataFrame:
     wb = openpyxl.load_workbook(path, data_only=True)
     rows = []
-    for ws in wb.worksheets:                                   # KW1..KW12
+    for ws in wb.worksheets:                                  
         for r in ws.iter_rows(values_only=True):
             if len(r) < 7 or r[2] is None:
                 continue
             r1, r2, r3, vote = (rating(r[i]) for i in (3, 4, 5, 6))
-            if None in (r1, r2, r3, vote):                     # skips headers and the reviewer-info rows
+            if None in (r1, r2, r3, vote):                    
                 continue
             rows.append(dict(topic=ws.title, url=str(r[2]).strip(), R1=r1, R2=r2, R3=r3, vote_workbook=vote))
     return pd.DataFrame(rows)
@@ -114,7 +97,7 @@ def build_manifest(data_dir: Path):
     df["topic_name"] = df.topic.map(TOPIC_NAMES)
     df["n_hoax"] = (df[["R1", "R2", "R3"]] == "hoax").sum(axis=1)
     df["unanimous"] = df.n_hoax.isin([0, 3])
-    df["label"] = np.where(df.n_hoax >= 2, "hoax", "valid")       # reviewer majority = the label to use
+    df["label"] = np.where(df.n_hoax >= 2, "hoax", "valid")       
     df["y"] = (df.label == "hoax").astype(int)
     df["csv_label_mismatch"] = df.label_csv != df.label
     df["vote_differs_from_majority"] = df.vote_workbook != df.label
@@ -172,13 +155,13 @@ def report(y, p):
 
 
 def lr_text():
-    """TF-IDF (word 1-2gram) + logistic regression. Module-level so classification/baseline.py can reuse it."""
+    # TF-IDF (word 1-2gram) + logistic regression
     return make_pipeline(TfidfVectorizer(sublinear_tf=True, min_df=2, ngram_range=(1, 2)),
                          LogisticRegression(max_iter=2000, class_weight="balanced"))
 
 
 def lr_dom():
-    """Domain-name-only baseline (char 3-5gram TF-IDF + logistic regression)."""
+    # char 3-5gram TF-IDF + logistic regression
     return make_pipeline(TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5)),
                          LogisticRegression(max_iter=2000, class_weight="balanced"))
 
@@ -209,7 +192,7 @@ def main():
     a = ap.parse_args()
 
     df, audit = build_manifest(a.data_dir)
-    cols = [c for c in df.columns if c != "text"]                  # never write article text
+    cols = [c for c in df.columns if c != "text"]                  
     a.out_manifest.parent.mkdir(parents=True, exist_ok=True)
     df[cols].to_csv(a.out_manifest, index=False)
     print(json.dumps(audit, indent=2, ensure_ascii=False))

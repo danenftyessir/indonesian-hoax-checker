@@ -1,20 +1,5 @@
-#!/usr/bin/env python3
-"""Baseline TF-IDF + LR untuk Mendeley 600, dengan protokol split yang diulang.
+# Baseline TF-IDF + LR untuk dataset Mendeley
 
-Memakai ulang fungsi dari data_audit/mendeley_audit.py (manifest, model, report). Perbedaan dari skrip audit:
-split acak dan split terkelompok-klaster diulang R kali; yang dilaporkan adalah rata-rata dan sebaran macro-F1.
-Alasan: pada split terkelompok, klaster berukuran sama saling seri, sehingga penempatan ke fold bergantung pada
-urutan id klaster. Satu kali jalan memberi selisih sekitar +-0,02 yang bukan sinyal.
-
-Protokol
-  random_5fold             StratifiedKFold(5, shuffle) diulang dengan seed berbeda
-  cluster_grouped_5fold    klaster near-duplicate tidak dipecah; urutan klaster diacak per ulangan
-  leave_one_topic_out      deterministik (12 topik), satu kali
-  domain_only_*            baseline nama domain saja (cek shortcut sumber)
-
-Pemakaian
-  python classification/baseline.py --data-dir data/raw/mendeley [--repeats 20] [--out results/mendeley_baseline_repeated.json]
-"""
 import argparse, json, sys
 from pathlib import Path
 
@@ -24,11 +9,11 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.model_selection import LeaveOneGroupOut, StratifiedKFold, cross_val_predict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from data_audit import mendeley_audit as ma  # noqa: E402  (dipakai ulang, tidak disalin)
+from data_audit import mendeley_audit as ma  
 
 
 def grouped_folds(groups, k, seed):
-    """Greedy: klaster terbesar dulu ke fold terisi paling sedikit. Urutan klaster yang seri diacak oleh seed."""
+    # Klaster terbesar dulu ke fold terisi paling sedikit, urutan klaster yang seri diacak oleh seed
     uniq, inv = np.unique(groups, return_inverse=True)
     sizes = np.bincount(inv)
     rng = np.random.default_rng(seed)
@@ -44,7 +29,7 @@ def grouped_folds(groups, k, seed):
 
 
 def summarize(y, preds):
-    """preds: daftar prediksi out-of-fold (satu per ulangan)."""
+    # Daftar prediksi out-of-fold
     f1 = np.array([f1_score(y, p, average="macro") for p in preds])
     out = {
         "n_repeats": len(preds),
@@ -54,7 +39,6 @@ def summarize(y, preds):
         "macro_f1_max": round(float(f1.max()), 3),
         "hoax_precision_mean": round(float(np.mean([precision_score(y, p, zero_division=0) for p in preds])), 3),
         "hoax_recall_mean": round(float(np.mean([recall_score(y, p) for p in preds])), 3),
-        # CI bootstrap atas 600 item, hanya dari ulangan pertama (ketidakpastian sampel, bukan sebaran split)
         "bootstrap_ci95_repeat0": ma.bootstrap_ci(y, preds[0]),
     }
     return out

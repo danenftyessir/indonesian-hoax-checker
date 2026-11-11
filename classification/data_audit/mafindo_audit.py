@@ -1,6 +1,5 @@
-# Audit pintas/kebocoran untuk umn-cyber/mafindo-2024.
-# Jalankan: python classification/data_audit/mafindo_audit.py
-# Butuh paket `datasets` (mengunduh dataset dari Hugging Face saat pertama kali jalan).
+# Audit dataset umn-cyber/mafindo-2024
+
 import re, numpy as np, pandas as pd
 from datasets import load_dataset
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -25,7 +24,7 @@ def feats(d):
     }).astype(int)
 
 Ftr, Fte = feats(tr), feats(te)
-print(Ftr.groupby(tr.is_hoax.values).mean().T.round(3))      # artifact rates by class
+print(Ftr.groupby(tr.is_hoax.values).mean().T.round(3))      
 
 norm = lambda s: re.sub(r"\W+", " ", s.lower()).strip()
 print("dup titles in train:", tr.title.map(norm).duplicated().sum(),

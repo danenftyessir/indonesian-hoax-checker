@@ -1,4 +1,4 @@
-# Perintah ringkas untuk audit dan baseline klasifikasi. Data mentah tidak ada di Git: lihat data/README.md.
+# Perintah ringkas untuk audit dan baseline klasifikasi
 PY ?= python
 MENDELEY_DIR ?= data/raw/mendeley
 
@@ -8,7 +8,7 @@ MENDELEY_DIR ?= data/raw/mendeley
 audit-mendeley:
 	$(PY) classification/data_audit/mendeley_audit.py --data-dir $(MENDELEY_DIR)
 
-# Mengunduh umn-cyber/mafindo-2024 dari Hugging Face saat pertama kali jalan (butuh paket `datasets`).
+# Download umn-cyber/mafindo-2024 dari Hugging Face saat pertama kali jalan (butuh paket `datasets`).
 audit-mafindo:
 	$(PY) classification/data_audit/mafindo_audit.py
 
