@@ -27,7 +27,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
   - `excerpt` kosong 61%; kategori tunggal "Klarifikasi Hoaks".
   - `tags`/`topics` dipakai untuk hasil per kategori (kesehatan, politik, penipuan tautan). Dari 50 judul terbaru: 9 penipuan "Tautan ...", sekitar 10 foto/video/audio rekayasa AI.
   - Butuh login Kaggle untuk mengunduh.
-- **Unduhan tercatat:** versi `___`, tanggal `___` (isi saat pembekuan test set).
+- **Unduhan tercatat:** versi **396**, diunduh **11 Nov 2026** lewat browser (`archive.zip`, berisi `komdigi_hoaks.csv` 10,07 MB dan `komdigi_hoaks.json`). Hasil `retrieval/corpus.py`: **3.048** record, artikel 27 Des 2024 – 9 Nov 2026, semua judul berprefiks `[HOAKS]`, 0 id ganda, 5 judul persis sama; `claim_sentence` terisi 3.048, `fact_sentence` 2.948 (97%); tag terbanyak `hoaks`, `hoaks hari ini`, `penipuan` (229), `pejabat publik` (74), `kesehatan` (40). Near-duplicate ≥ 0,8: 63 pasangan, 48 klaster ganda, klaster terbesar 4. Split: train 2.398 / dev 299 / test 351. **Unduh ulang dan jalankan lagi saat pembekuan 18 Nov.**
 
 ### NERGrit (IndoNLU) — NER utama
 

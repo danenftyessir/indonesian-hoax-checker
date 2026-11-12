@@ -1,0 +1,74 @@
+# Sumber data dan lokasi lokalnya. Rincian, lisensi, dan catatan audit: docs/dataset_documentation.md.
+# Semua file di data/raw tidak di-commit. Isi `downloaded_version` dan `downloaded_at` saat mengunduh
+# (wajib untuk Komdigi saat pembekuan test set 18 Nov 2026).
+#
+# Key `ner`, `ner.nergrit`, `ner.nerp`, `ner.files` DIBACA oleh ner/prepare.py (Jonathan): jangan diganti namanya.
+# Key lain belum dibaca kode; berfungsi sebagai dokumentasi dan acuan CLI.
+
+ner:
+  owner: jonathan
+  nergrit:
+    base_url: https://raw.githubusercontent.com/IndoNLP/indonlu/master/dataset/nergrit_ner-grit
+    raw_dir: data/raw/ner/nergrit
+    license: MIT
+  nerp:
+    base_url: https://raw.githubusercontent.com/IndoNLP/indonlu/master/dataset/nerp_ner-prosa
+    raw_dir: data/raw/ner/nerp
+    license: MIT
+    notes: seluruhnya huruf kecil; 323 duplikat train dibuang; hanya varian lowercase RQ1
+  # Label test IndoNLU disembunyikan, jadi yang dipakai hanya train dan valid
+  files:
+    train: train_preprocess.txt
+    valid: valid_preprocess.txt
+
+refuted_claims:
+  owner: danendra
+  # Butuh login Kaggle (KAGGLE_USERNAME/KAGGLE_KEY di .env), atau unduh lewat browser:
+  #   kaggle datasets download ireddragonicy/indonesian-hoax-news-dataset -p data/raw/refuted_claims --unzip
+  kaggle: ireddragonicy/indonesian-hoax-news-dataset
+  license: Apache-2.0
+  csv: data/raw/refuted_claims/komdigi_hoaks.csv
+  local_interim: data/interim/refuted_claims/claims_raw.jsonl
+  local_processed: data/processed/refuted_claims/claims.jsonl
+  downloaded_version: 396
+  downloaded_at: 2026-11-11
+  notes: unduh ulang dan jalankan ulang retrieval.corpus + evaluation.splits sebelum pembekuan 18 Nov 2026
+
+classifier:
+  owner: dzaky
+  mafindo2024:
+    huggingface: umn-cyber/mafindo-2024   # publik, kolom title, content, is_hoax
+    cache_dir: data/raw/classifier/mafindo2024
+    license: MIT
+    notes: cek duplikat judul sebelum split stratified
+  mendeley_hoax_600:
+    url: https://data.mendeley.com/datasets/p3hfgr5j3m
+    license: CC-BY-4.0
+    local_raw: data/raw/classifier/mendeley_600.csv
+    notes: hanya set uji lintas-domain
+
+stance:
+  owner: danendra
+  indonli:
+    base_url: https://raw.githubusercontent.com/ir-nlp-csui/indonli/main/data/indonli/
+    license: CC-BY-SA-4.0
+    files: [train.jsonl, val.jsonl, test_lay.jsonl, test_expert.jsonl]
+    local_raw: data/raw/stance/indonli/
+    local_processed: data/processed/stance/indonli_{split}.jsonl
+  brin_fakenews_mafindo:
+    huggingface: nlp-brin-id/fakenews-mafindo
+    gated: true
+    alt_source: https://hdl.handle.net/20.500.12690/RIN/7QBRKQ   # dataverse BRIN, coba dari jaringan kampus
+    license: lihat kartu dataset (cek sebelum publikasi turunan)
+    local_raw: data/raw/stance/brin_fakenews_mafindo.csv
+    local_processed: data/processed/stance/brin_refutes.jsonl
+    downloaded_at: null
+
+team_annotations:
+  ner_seed: data/annotations/ner/
+  stance_pairs: data/annotations/claim_verification/stance_pairs.jsonl
+  retrieval_queries: data/annotations/claim_verification/retrieval_queries.jsonl
+  # kalimat berita valid untuk 100 kueri no_match; dikirim Dzaky 12 Nov 2026 (144 kandidat, id sc150..sc299)
+  no_match_source: data/no_match_queries.jsonl
+  short_claims: data/short_claims.jsonl
+  splits: data/splits/

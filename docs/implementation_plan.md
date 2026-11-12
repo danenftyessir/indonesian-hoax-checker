@@ -76,11 +76,28 @@ Modul terkait: `data/`, `preprocessing/`, `evaluation/splits.py`.
 
 Tidak di-fine-tune: BiLSTM-CRF dan TF-IDF + LR (dilatih dari nol), BM25 (hanya indeks), model embedding retrieval (siap pakai), baseline stance (ambang similarity).
 
-## Hal yang perlu dicek / diputuskan
+## Status pengerjaan bagian Danendra (11 Nov 2026)
 
-1. **`schemas.py`** tidak persis "tidak berubah bentuk". Retrieval mengembalikan `top_k` klaim sedangkan `RetrievalResult` hanya satu. `Entity` memakai `label` sedangkan resolusi menulis `Entity.type`. `core_claim: str` perlu dicek untuk artikel multi-kalimat (aturannya satu CLAIM per kalimat).
-2. **Sumber parafrasa** untuk pasangan stance "supports" belum ditentukan (manual atau generasi model).
-3. **Base model stance** belum dikunci (`configs/models/stance_nli.yaml` kosong): IndoBERT-p1 atau model NLI multibahasa.
-4. **Compute** (Colab/Kaggle GPU) belum diputuskan. Tiga seed per model plus varian RQ berarti cukup banyak run GPU.
-5. **Akses data manual:** Kaggle butuh login; HF Mafindo BRIN butuh persetujuan akses.
-6. **Tanggal presentasi** belum pasti, jadi tenggat Fase 3–4 belum bisa diisi.
+Kode siap dan teruji (`tests/unit/test_retrieval.py`, `tests/unit/test_stance.py`). Basis Komdigi (Kaggle v396, 11 Nov 2026) sudah diproses: 3.048 klaim, 63 pasangan near-duplicate, split train/dev/test = 2.398/299/351.
+
+| Bagian | Modul | Status |
+|---|---|---|
+| Ekstraksi klaim Komdigi (`[HOAKS]`, "Beredar ...", "Faktanya ...") | `retrieval/corpus.py` | selesai, sudah dijalankan pada data asli |
+| Near-duplicate TF-IDF char 3–5-gram ≥ 0,8 + split waktu + manifest hash + sampel 50 pasangan | `evaluation/splits.py` | selesai, sudah dijalankan; `dev_start` 1 Jul 2026 masih usulan, 70 pasangan `near_duplicate_review.csv` belum diperiksa manual |
+| BM25, embedding e5, filter entitas, metrik RQ3, skrip evaluasi | `retrieval/` | selesai; model embedding dipilih setelah uji 100 kueri |
+| Stance: konversi IndoNLI/BRIN/tim, baseline ambang similarity, NLI wrapper, metrik RQ4, skrip latih | `stance/` | selesai; latih butuh GPU |
+| Template 300 pasangan stance + 300 kueri | `data/claim_verification_templates.py` | selesai; isi manual setelah split beku |
+| Tinjauan `schemas.py` | `common/schemas.py` | selesai; **bentuk top-k berbeda dengan 0011 §1** (lihat di bawah), perlu diselaraskan sebelum 13 Nov |
+| Akses BRIN gated, verifikasi `short_claims.jsonl` | — | manual, belum (unduh Kaggle sudah) |
+| Sumber 100 kueri `no_match` | `data/no_match_queries.jsonl` (Dzaky, 144 kandidat) | diterima 12 Nov; sudah dicek BM25 top-10, belum dimasukkan ke `retrieval_queries.jsonl` |
+
+Catatan kontrak retrieval: 0011 §1 menetapkan tahap retrieval mengembalikan `list[RetrievalResult]`. Implementasi saat ini mengembalikan satu `RetrievalResult` berisi `candidates` (top-k) dengan tiga field lama berisi kandidat pertama. Isinya setara; yang perlu diputuskan adalah bentuk yang dipakai `pipeline/confidence.py`.
+
+## Keputusan yang sudah ditetapkan
+
+Hal yang sebelumnya terbuka sudah ditetapkan di [0011](decisions/0011-keputusan-teknis-tambahan.md): kontrak `schemas.py`, parafrasa manual, base model stance IndoBERT-p1, fine-tuning IndoBERT di Colab, dan tanpa permintaan izin ke penulis mana pun.
+
+Yang tetap dikerjakan manual oleh pemilik task:
+
+1. **Akses data:** login Kaggle untuk basis Komdigi; klik persetujuan gated HF untuk dataset BRIN.
+2. **Tanggal presentasi** belum diumumkan, jadi tenggat Fase 3–4 diisi setelah jadwal keluar.

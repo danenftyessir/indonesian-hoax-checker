@@ -43,3 +43,9 @@ outputs/logs/**
 # OS
 .DS_Store
 Thumbs.db
+
+# Pytest
+.pytest_cache/
+
+# Unduhan mentah yang diletakkan di root (mis. archive.zip dari Kaggle)
+*.zip
