@@ -1,4 +1,27 @@
-# Stance detection (task 3b). Base model NOT locked yet: IndoBERT-p1 or a multilingual NLI model.
-# Decided by Danendra; see docs/implementation_plan.md, "Hal yang perlu dicek".
-model_name: null
+# Stance detection (task 3b). Dibaca stance/train.py dan stance/predict.py.
+# Usulan Danendra (11 Nov 2026), belum disahkan: base model = indobenchmark/indobert-base-p1,
+# sama dengan NER dan klasifikasi, difine-tune dua tahap (IndoNLI lalu BRIN/tim).
+# Alasan: IndoNLI melaporkan IndoBERT sebagai baseline resmi; satu base model menyederhanakan
+# reproduksi dan laporan. Pembanding zero-shot: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7
+# (id2label entailment/neutral/contradiction, langsung bisa dipakai NLIStanceModel tanpa latih).
+model_name: indobenchmark/indobert-base-p1
+zero_shot_baseline: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7
 labels_from: configs/labels.yaml#stance
+hyperparameters:
+  max_length: 256
+  learning_rate: 2.0e-5
+  batch_size: 16
+  epochs: 3
+  weight_decay: 0.01
+  warmup_ratio: 0.06
+seeds: [13, 42, 2026]
+stages:
+  - name: indonli
+    train: [data/processed/stance/indonli_train.jsonl]
+    dev: data/processed/stance/indonli_val.jsonl
+    output: artifacts/checkpoints/stance_indonli
+  - name: brin_team
+    init: artifacts/checkpoints/stance_indonli
+    train: [data/processed/stance/brin_refutes.jsonl, data/processed/stance/team_train.jsonl]
+    dev: data/processed/stance/team_dev.jsonl
+    output: artifacts/checkpoints/stance_final

@@ -1,6 +1,6 @@
 # Label Mapping
 
-Sumber: *Resolusi Diskusi dan Audit Dataset* (11 Nov 2026). Nilai mesin ada di `configs/labels.yaml`; dokumen ini menjelaskan alasannya. Status: **Usulan** sampai rapat 13 Nov 2026.
+Sumber: *Resolusi Diskusi dan Audit Dataset* (11 Nov 2026). Nilai mesin ada di `configs/labels.yaml`; dokumen ini menjelaskan alasannya. Status: **Final**.
 
 ## Klasifikasi (task 2)
 

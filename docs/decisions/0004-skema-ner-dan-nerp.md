@@ -1,6 +1,6 @@
 # 0004 — Skema NER dan pemakaian NERP
 
-**Status:** Usulan
+**Status:** Final
 
 ## Konteks
 NERGrit (PERSON, ORGANISATION, PLACE; cased), NERP (PPL, PLC, IND, EVT, FNB; seluruhnya huruf kecil, 323 kalimat duplikat di train), dan target tim (PER, ORG, LOC, TIME, CLAIM) berbeda skema.
@@ -13,6 +13,8 @@ NERGrit (PERSON, ORGANISATION, PLACE; cased), NERP (PPL, PLC, IND, EVT, FNB; sel
 
 ## Alasan
 Casing adalah fitur penting NER Indonesia. Mencampur NERP yang lowercase ke model cased merusak sinyal itu; justru NERP cocok mensimulasikan teks informal.
+
+Catatan: tokenizer `indobert-base-p1` mengubah teks ke huruf kecil, jadi alasan casing berlaku untuk BiLSTM-CRF (fitur karakter), tidak untuk IndoBERT. Aturan pemakaian NERP tetap sama supaya varian lowercase RQ1 terpisah jelas.
 
 ## Konsekuensi
 TIME dan CLAIM hanya berasal dari anotasi sendiri (seed set, lihat 0007).

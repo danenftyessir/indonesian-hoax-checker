@@ -1,6 +1,6 @@
 # 0005 — Entitas untuk task 2 dan 3
 
-**Status:** Usulan
+**Status:** Final
 
 ## Konteks
 Melatih task 2 dan 3 dengan entitas gold terlalu optimis, tetapi NER final bergantung pada anotasi CLAIM yang belum ada.

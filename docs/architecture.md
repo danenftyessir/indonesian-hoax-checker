@@ -19,7 +19,7 @@ flowchart LR
 - Klasifikasi dan retrieval berjalan **paralel**, lalu digabung di `pipeline/confidence.py` ([0010](decisions/0010-klasifikasi-dan-retrieval-paralel.md)). Ini berbeda dari laporan desain awal, yang menjalankan retrieval setelah klasifikasi.
 - Basis klaim terbantah adalah data rujukan, bukan model; kemutakhirannya bergantung pada unduhan ulang berkala.
 
-## Aturan penggabungan (draf)
+## Aturan penggabungan
 
 | Klasifikasi | Bukti retrieval + stance | Indikasi |
 |---|---|---|
@@ -37,12 +37,13 @@ Didefinisikan di `src/indonesian_hoax_checker/common/schemas.py`:
 | Tipe | Isi |
 |---|---|
 | `Entity` | `text`, `label` (PER/ORG/LOC/TIME/CLAIM), `start`, `end` (posisi karakter) |
-| `NERResult` | `entities`, `core_claim` |
+| `NERResult` | `entities`, `core_claim` (span CLAIM pertama) |
 | `ClassificationResult` | `label` (`hoax`/`valid`), `confidence` 0–1 |
-| `RetrievalResult` | `matched_claim`, `clarification`, `similarity_score` (None bila tidak ada) |
-| `StanceResult` | `label` (`supports`/`refutes`/`unrelated`), `confidence` |
+| `RetrievalCandidate` | `claim_id`, `claim`, `clarification`, `url`, `published_at`, `score` |
+| `RetrievalResult` | `candidates` (top-k terurut, boleh kosong), `scorer` (`bm25`/`embedding`), plus `matched_claim`, `clarification`, `similarity_score` = kandidat pertama atau None |
+| `StanceResult` | `label` (`supports`/`refutes`/`unrelated`), `confidence`, `claim_id` klaim terbantah yang dinilai |
 
-Masih draf. Yang perlu diputuskan: retrieval mengembalikan top-k sedangkan `RetrievalResult` hanya satu, dan `core_claim` untuk input multi-kalimat.
+Ditinjau Danendra 11 Nov 2026 (disahkan di rapat 13 Nov): retrieval mengembalikan top-k lewat `candidates`, tiga field lama dipertahankan agar laporan tidak berubah; nama field entitas tetap `label`; `core_claim` tetap satu string (NER memilih CLAIM pertama untuk input multi-kalimat, sisanya ada di `entities`), retrieval memakai `core_claim` bila tidak kosong dan teks input bila kosong.
 
 ## Modul
 
@@ -66,7 +67,7 @@ Masih draf. Yang perlu diputuskan: retrieval mengembalikan top-k sedangkan `Retr
 | NER | BiLSTM-CRF | `indobenchmark/indobert-base-p1` (fine-tune) |
 | Klasifikasi | TF-IDF + regresi logistik | `indobenchmark/indobert-base-p1` (fine-tune) |
 | Retrieval | BM25 | Sentence embedding siap pakai (mis. multilingual-e5), dipilih Danendra |
-| Stance | Ambang similarity | Model NLI (fine-tune), base belum dikunci |
+| Stance | Ambang similarity | `indobenchmark/indobert-base-p1` NLI (fine-tune) |
 
 Model terlatih disimpan di `artifacts/checkpoints/`, indeks retrieval di `artifacts/retrieval_indexes/`. Demo hanya memuat model, tidak melatih.
 
@@ -79,6 +80,18 @@ python -m indonesian_hoax_checker            # mode interaktif
 ```
 
 `--verbose` menampilkan keluaran tiap tahap; `--task` menjalankan satu task saja. Status: argumen sudah ada, pipeline belum dipasang.
+
+Entitas NER sudah bisa dipakai langsung oleh task lain lewat tahap pipeline:
+
+```python
+from indonesian_hoax_checker.pipeline.stages import NERStage
+
+ner = NERStage.from_config()  # checkpoint dari configs/pipeline.yaml
+ner("Pemerintah menghentikan bantuan MBG mulai bulan depan")  # -> NERResult
+ner.run_batch([...])          # banyak teks sekaligus, lebih cepat
+```
+
+Checkpoint diambil dari `ner_results.zip` di Drive `hasil_training` (ekstrak di root repo). Bila `ner.checkpoint: null`, tahap ini berjalan sebagai **stub** (entitas kosong), supaya klasifikasi dan retrieval bisa dikembangkan sebelum model NER tersedia ([0005](decisions/0005-entitas-untuk-task-2-dan-3.md)).
 
 ## Risiko (dari diagram BEAM)
 

@@ -1,0 +1,11 @@
+<!-- Konfigurasi Label Studio untuk anotasi seed set NER (docs/annotation_guidelines.md) -->
+<View>
+  <Labels name="label" toName="text">
+    <Label value="PER" background="#4e79a7"/>
+    <Label value="ORG" background="#f28e2b"/>
+    <Label value="LOC" background="#59a14f"/>
+    <Label value="TIME" background="#b07aa1"/>
+    <Label value="CLAIM" background="#e15759"/>
+  </Labels>
+  <Text name="text" value="$text" granularity="word"/>
+</View>

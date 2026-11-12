@@ -1,0 +1,22 @@
+# RQ3: Apakah mempersempit kandidat dengan entitas bersama membantu menemukan klaim terbantah?
+# Protokol: docs/experiment_protocol.md task 3a. Jalankan tiap run dengan retrieval/evaluate.py.
+queries: data/annotations/claim_verification/retrieval_queries.jsonl
+dev_queries: data/annotations/claim_verification/retrieval_queries_dev.jsonl   # opsional, untuk ambang
+reference_date: "2026-11-18"   # pembekuan test set; dasar hitung usia klaim
+top_k: 10
+metrics: [success@1, success@5, success@10, mrr, recall@10, rejection_rate_no_match, false_rejection_rate]
+runs:
+  - name: rq3_bm25_nofilter
+    config: configs/models/retrieval_bm25.yaml
+    entity_filter: false
+  - name: rq3_bm25_entfilter
+    config: configs/models/retrieval_bm25.yaml
+    entity_filter: true
+  - name: rq3_e5_nofilter
+    config: configs/models/retrieval_embeddings.yaml
+    entity_filter: false
+  - name: rq3_e5_entfilter
+    config: configs/models/retrieval_embeddings.yaml
+    entity_filter: true
+# Entitas kueri: prediksi NER final (0005). Sebelum ada, pakai model NER baseline NERGrit;
+# heuristic_entities hanya untuk uji coba dan tidak boleh masuk laporan.

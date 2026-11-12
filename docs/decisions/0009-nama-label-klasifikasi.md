@@ -1,6 +1,6 @@
 # 0009 — Nama label klasifikasi
 
-**Status:** Usulan
+**Status:** Final
 
 ## Keputusan
 `hoax` / `valid` di kode dan konfigurasi. Laporan memakai "hoaks" / "valid", bukan "fakta".

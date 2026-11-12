@@ -1,0 +1,18 @@
+# Tahap 2 BiLSTM-CRF: lanjut dari model NERGrit, dilatih di seed set (PER, ORG, LOC, TIME, CLAIM).
+# Jalankan setelah ner_bilstm_crf.yaml selesai dan seed_*.conll dibuat (ner.annotation split).
+name: ner_bilstm_crf_claim_time
+model: bilstm_crf
+init_from: artifacts/checkpoints/ner/ner_bilstm_crf_seed{seed}
+data:
+  train: data/processed/ner/seed_train.conll
+  dev: data/processed/ner/seed_dev.conll
+  test: data/processed/ner/seed_test.conll
+extra_eval:
+  nergrit_test: data/processed/ner/nergrit_test.conll
+  seed_informal_test: data/processed/ner/seed_informal_test.conll  # 30 kalimat informal buatan tim, bila ada
+lowercase: false
+lr: 0.001
+batch_size: 16
+epochs: 50
+patience: 10
+device: auto   # di Colab = GPU; jangan dijalankan di MPS Mac

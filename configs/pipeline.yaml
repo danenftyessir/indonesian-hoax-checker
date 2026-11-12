@@ -1,0 +1,7 @@
+# Pengaturan pipeline (dibaca pipeline/stages.py dan orchestrator).
+
+ner:
+  # Checkpoint dari Drive hasil_training (ner_results.zip), diekstrak ke repo.
+  # null = mode stub: entitas kosong, supaya task 2 dan 3 bisa jalan sebelum model tersedia.
+  checkpoint: artifacts/checkpoints/ner/ner_indobert_seed42
+  device: auto
