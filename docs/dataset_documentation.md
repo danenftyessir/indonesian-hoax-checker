@@ -129,6 +129,24 @@ Cara membaca:
 - Pembanding dalam Mendeley sendiri: TF-IDF + LR dengan leave-one-topic-out mencapai 0,636, di atas 0,569 dari model Mafindo.
 - Batas: satu kali jalan, ambang tetap 0,5, hanya `content`. Mendeley (artikel 2014–2018 dari banyak situs) dan Mafindo (2024, kelas hoaks berisi artikel cek fakta) berbeda domain dan waktu.
 
+**Fine-tuning IndoBERT-p1 pada Mafindo-2024** (`classification/finetune_indobert.py`, Colab T4, 11–12 Nov 2026; 3 seed 13/42/2026, 3 epoch, batch 32, lr 2e-5, panjang maks 256 token, hanya `content`, 10% train sebagai validasi untuk memilih epoch, ambang 0,5; rata-rata ± sd antar seed; angka disalin dari keluaran notebook Colab):
+
+| Tes | TF-IDF + LR (satu kali jalan) | IndoBERT-p1 (3 seed) |
+|---|---|---|
+| Mafindo test, macro-F1 | 0,984 [0,981; 0,987] | 0,987 ± 0,001 |
+| Mafindo test, AUROC | 0,997 | 0,998 ± 0,000 |
+| Mendeley 600, macro-F1 | 0,569 [0,529; 0,612] | 0,524 ± 0,029 |
+| Mendeley 600, AUROC | 0,597 | 0,585 ± 0,010 |
+| Mendeley tanpa penanda bantahan (n=280), macro-F1 | 0,493 | 0,459 ± 0,031 |
+| Mendeley tanpa penanda bantahan, AUROC | 0,493 | 0,498 ± 0,007 |
+| Mendeley dengan penanda bantahan (n=320), macro-F1 | 0,551 | 0,526 ± 0,012 |
+
+- Fine-tuning tidak memperbaiki transfer lintas-sumber. Skor in-domain hampir sama dengan baseline (0,987 vs 0,984), dan pada Mendeley IndoBERT tidak lebih baik; pada irisan tanpa penanda bantahan AUROC 0,498 ± 0,007, setara tebakan acak. Model yang lebih kuat mempelajari pembeda sumber/gaya yang sama dengan model TF-IDF.
+- Perbandingan memakai satu pengaturan hiperparameter (belum disetel), teks dipotong 256 token, dan TF-IDF hanya satu kali jalan. Selisih TF-IDF vs IndoBERT pada Mendeley tidak diuji secara berpasangan, jadi jangan dibaca sebagai bukti IndoBERT lebih buruk.
+- Recall hoaks pada Mendeley sangat bervariasi antar seed (0,429 ± 0,120): keputusan pada ambang 0,5 tidak stabil di luar domain.
+- Waktu: sekitar 254 detik per epoch pada T4, sekitar 41 menit untuk 3 seed.
+- Model tidak disimpan (`--save-dir` tidak dipakai); skor per seed tersimpan di folder hasil Drive untuk kalibrasi dan analisis galat. Probe klaim pendek tidak dijalankan pada run ini.
+
 ### IndoNLI — stance (pra-latih)
 
 - **URL:** https://raw.githubusercontent.com/ir-nlp-csui/indonli/main/data/indonli/train.jsonl
