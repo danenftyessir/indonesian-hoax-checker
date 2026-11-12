@@ -1,0 +1,14 @@
+# Retrieval model kuat (task 3a): sentence embedding siap pakai + cosine. Dibaca retrieval/search.py.
+# Kandidat (uji cepat pada 100 kueri pertama sebelum dikunci, docs/implementation_plan.md Fase 3):
+#   intfloat/multilingual-e5-base        (278M; prefiks query:/passage: otomatis di embeddings.py)
+#   intfloat/multilingual-e5-small       (118M; cadangan bila laptop demo lambat)
+#   LazarusNLP/all-indo-e5-small-v4      (khusus Indonesia; cek lisensi dan kualitas)
+scorer: embedding
+model_name: intfloat/multilingual-e5-base
+claims_path: data/processed/refuted_claims/claims.jsonl
+fields: [claim, claim_sentence]
+top_k: 10
+min_score: null        # cosine; dipilih dari dev via best_rejection_threshold
+cache_dir: artifacts/retrieval_indexes
+entity_filter: false
+corpus_entities_path: data/processed/refuted_claims/claims_entities.jsonl
