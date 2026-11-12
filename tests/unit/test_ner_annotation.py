@@ -236,3 +236,14 @@ def test_compound_subject_is_skipped():
     t = words("Beredar unggahan yang mengeklaim bahwa DPR RI dan Polri telah meresmikan SIM berlaku seumur hidup.")
     tags = ["O"] * len(t); i = t.index("DPR"); tags[i:i + 2] = ["B-ORG", "I-ORG"]
     assert spans(t, add_claim_tag(t, tags))[-1] == ("telah meresmikan SIM berlaku seumur hidup", "CLAIM")
+
+
+def test_build_accept_auto_uses_auto_labels_for_checked_dev_test():
+    auto_rows = [
+        {"id": "d1", "split": "dev", "tokens": ["a"], "tags": ["B-CLAIM"]},
+        {"id": "t1", "split": "test", "tokens": ["b"], "tags": ["O"]},
+        {"id": "r1", "split": "train", "tokens": ["c"], "tags": ["B-CLAIM"]},
+    ]
+    rows, missing, dropped = build([], auto_rows, accept_auto=True)
+    assert {(r["id"], r["quality"]) for r in rows} == {("d1", "human"), ("t1", "human"), ("r1", "silver")}
+    assert missing == [] and dropped == 0

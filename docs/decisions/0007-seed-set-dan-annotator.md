@@ -24,6 +24,9 @@ NERGrit dan NERP tidak punya label CLAIM dan TIME. Rencana awal (400 kalimat, ti
 ## Alasan
 Label otomatis murah, jadi data latih bisa jauh lebih besar dari 400. Data evaluasi tetap diperiksa manusia supaya F1 mengukur kemampuan model mengenali klaim, bukan kemiripannya dengan aturan.
 
+## Hasil pemeriksaan (2026-11-12)
+Jonathan memeriksa 150 kalimat dev/test dan tidak menemukan yang perlu diubah, sehingga label otomatis dipakai apa adanya (`annotation build --accept-auto`). Karena tidak ada koreksi, `annotation report` tidak menghasilkan perbandingan label otomatis vs manusia.
+
 ## Konsekuensi
 - Tidak ada kappa antar-annotator; dicatat sebagai keterbatasan.
 - Kualitas label otomatis diukur dengan `annotation report` (label otomatis vs hasil koreksi pada 150 kalimat) dan dilaporkan.

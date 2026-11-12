@@ -68,6 +68,7 @@ Label Studio dijalankan lokal (`pipx install label-studio`, lalu `label-studio s
 1. **Laporan koreksi:** `python -m indonesian_hoax_checker.ner.annotation report --export <ekspor>`
    Membandingkan label otomatis dengan hasil koreksi (hasil koreksi = kunci jawaban): persentase kalimat yang tidak diubah, dan precision/recall/F1 label otomatis per tipe. Angka ini menjadi perkiraan kualitas data latih (silver) dan dilaporkan sebagai bagian dari eksperimen.
 2. **Gabungkan:** `python -m indonesian_hoax_checker.ner.annotation build --export <ekspor>`
+   Bila semua 150 kalimat dev/test sudah diperiksa dan tidak ada yang diubah, ekspor tidak diperlukan: `build --accept-auto` memakai label otomatis apa adanya sebagai `quality: human`.
    Hasil `seed_adjudicated.jsonl`: dev/test dari hasil koreksi (`quality: human`), train dari label otomatis (`quality: silver`). Kalimat train yang tidak mendapat CLAIM dari aturan dibuang (label O di kalimat itu kemungkinan besar salah). Kalimat dev/test yang belum dikoreksi tidak dipakai dan dicetak sebagai peringatan.
 3. **Split:** `python -m indonesian_hoax_checker.ner.annotation split` menulis `seed_{train,dev,test}.conll` (dan `seed_informal_test.conll` bila ada kalimat informal). Dijalankan otomatis di notebook Colab.
 4. Bila ada beberapa annotator, `kappa --export <ekspor> [<ekspor lain> ...]` dan `build --adjudicator` tetap tersedia.

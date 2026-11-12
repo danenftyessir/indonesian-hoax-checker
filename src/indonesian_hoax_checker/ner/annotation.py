@@ -199,7 +199,9 @@ def correction_report(final: list[dict], auto_by_id: dict) -> dict:
 # - Kalimat dev/test yang belum dikoreksi TIDAK diisi label otomatis: data evaluasi harus diperiksa manusia.
 # - Kalimat train tanpa CLAIM dari aturan dibuang: hampir semua kalimat seed memuat klaim, jadi label O
 #   di kalimat itu kemungkinan besar salah dan akan mengajari model untuk tidak menandai klaim.
-def build(final: list[dict], auto_rows: list[dict]) -> tuple[list[dict], list[str], int]:
+# accept_auto=True: dev/test yang tidak ada di ekspor dianggap sudah diperiksa manusia dan dipakai
+# apa adanya (annotator memeriksa semuanya dan tidak menemukan yang perlu diubah).
+def build(final: list[dict], auto_rows: list[dict], accept_auto: bool = False) -> tuple[list[dict], list[str], int]:
     human_ids = {r["id"] for r in final}
     rows = [{**r, "quality": "human"} for r in final]
     missing, dropped = [], 0
@@ -207,7 +209,10 @@ def build(final: list[dict], auto_rows: list[dict]) -> tuple[list[dict], list[st
         if row["id"] in human_ids:
             continue
         if row.get("split") in VERIFIED_SPLITS:
-            missing.append(row["id"])
+            if accept_auto:
+                rows.append({**row, "quality": "human"})
+            else:
+                missing.append(row["id"])
         elif "B-CLAIM" not in row["tags"]:
             dropped += 1
         else:
@@ -251,7 +256,9 @@ def main() -> None:
     p.add_argument("--export", required=True, nargs="+", help="Satu atau beberapa file ekspor")
 
     p = sub.add_parser("build", help="Gabungkan koreksi dan label otomatis menjadi seed_adjudicated.jsonl")
-    p.add_argument("--export", required=True, nargs="+", help="Satu atau beberapa file ekspor")
+    p.add_argument("--export", nargs="+", default=[], help="Satu atau beberapa file ekspor (boleh kosong dengan --accept-auto)")
+    p.add_argument("--accept-auto", action="store_true",
+                   help="Dev/test yang tidak ada di ekspor dipakai dengan label otomatis (sudah diperiksa, tanpa koreksi)")
     p.add_argument("--auto", default=str(ANNOTATION_DIR / "seed_auto.jsonl"))
     p.add_argument("--adjudicator", help="Nama/email annotator yang dipakai saat anotasi berbeda")
     p.add_argument("--output", default=str(ANNOTATION_DIR / "seed_adjudicated.jsonl"))
@@ -290,8 +297,10 @@ def main() -> None:
         print(json.dumps(report, indent=2))
 
     elif args.command == "build":
-        final, unresolved = adjudicate(read_export(args.export), args.adjudicator)
-        rows, missing, dropped = build(final, read_jsonl(args.auto))
+        if not args.export and not args.accept_auto:
+            parser.error("build butuh --export, atau --accept-auto bila semua dev/test sudah diperiksa tanpa koreksi")
+        final, unresolved = adjudicate(read_export(args.export), args.adjudicator) if args.export else ([], [])
+        rows, missing, dropped = build(final, read_jsonl(args.auto), args.accept_auto)
         write_jsonl(args.output, rows)
         counts = Counter((r.get("split"), r["quality"]) for r in rows)
         print(f"{len(rows)} kalimat ditulis ke {args.output}: " + ", ".join(f"{s}/{q} {n}" for (s, q), n in sorted(counts.items(), key=str)))
