@@ -9,7 +9,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 | Task | Latih | Validasi / uji in-domain | Uji buatan sendiri |
 |---|---|---|---|
 | 1 NER | NERGrit train (1.672, cased) + seed 300; NERP dedup (6.397) hanya varian lowercase | NERGrit valid (209), seed 50 | Seed test 50 + 30 kalimat informal |
-| 2 Klasifikasi | Mafindo-2024 train (23.641) | Mafindo-2024 test (5.911) | Mendeley 600, 300 klaim pendek, 200 klaim Komdigi netral |
+| 2 Klasifikasi | Mafindo-2024 train (23.641) | Mafindo-2024 test (5.911) | Mendeley 600 (label mayoritas penilai: 230 hoaks / 370 valid), 300 klaim pendek, 200 klaim Komdigi netral |
 | 3a Retrieval | — (BM25 / embedding siap pakai) | Basis Komdigi 3.043 klaim | 300 kueri: 100 judul asli, 100 parafrasa, 100 tanpa padanan |
 | 3b Stance | IndoNLI train (10.330) + pasangan BRIN | IndoNLI val (2.197), test_expert (2.984) | 300 pasangan beranotasi tim |
 
@@ -49,14 +49,85 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 - **URL:** https://huggingface.co/datasets/umn-cyber/mafindo-2024
 - **Lisensi:** MIT.
 - **Ukuran:** 29.552 artikel (train 23.641, test 5.911); kolom `title`, `content`, `is_hoax`. **(cek ulang)**
-- **Catatan:** berita benar dari Tempo, Kompas, dll.; hoaks dari CekFakta/turnbackhoax. Kelas hoaks adalah artikel cek fakta, bukan teks hoaks asli → risiko konfound sumber ([0001](decisions/0001-sumber-kelas-valid.md)). Deskripsi menyebut >15k tapi file 29,6k baris. Tidak ada tanggal. Periksa duplikat judul.
+- **Catatan:** berita benar dari Tempo, Kompas, dll.; hoaks dari CekFakta/turnbackhoax. Kelas hoaks adalah artikel cek fakta, bukan teks hoaks asli → risiko konfound sumber ([0001](decisions/0001-sumber-kelas-valid.md)). Deskripsi menyebut >15k tapi file 29,6k baris. Tidak ada tanggal.
+
+**Hasil audit shortcut** (`classification/data_audit/mafindo_audit.py`, dijalankan di Colab pada 11 Nov 2026; train 23.641 / test 5.911, proporsi hoaks 0,473 / 0,486):
+
+| Fitur | Kelas valid | Kelas hoaks |
+|---|---|---|
+| Nama media di isi (detikcom, kompas.com, tempo.co, antara, cnn indonesia) | 42,6% | 3,6% |
+| Judul berakhir tanda kutip | 0,8% | 26,7% |
+| Isi kurang dari 30 kata | 1,0% | 43,0% |
+| Judul huruf kapital semua | 0,2% | 8,4% |
+| Hashtag | 0,5% | 6,7% |
+| URL | 1,2% | 5,6% |
+
+- Judul duplikat di train: 141. Judul yang muncul di train dan test: 74 (sekitar 1,3% test).
+- Macro-F1 pada test: hanya bendera artefak 0,822; TF-IDF isi 0,984; TF-IDF isi dengan nama media, "[SALAH)", URL dan hashtag dibuang 0,984.
+- Pembersihan artefak tidak mengubah skor, jadi sinyalnya tersebar di kosakata dan gaya penulisan. Skor 0,984 mengukur pembedaan sumber/gaya, bukan kebenaran klaim, dan tidak boleh dibaca sebagai kemampuan mendeteksi hoaks. Selalu laporkan berdampingan dengan hasil lintas-sumber ([0001](decisions/0001-sumber-kelas-valid.md)).
+- Angka tunggal tanpa CI atau seed; belum ada pengecekan manual baris.
 
 ### Indonesian Hoax News Detection Dataset (Mendeley, Rahutomo dkk.) — uji lintas-domain
 
 - **URL:** https://data.mendeley.com/datasets/p3hfgr5j3m
 - **Lisensi:** CC BY 4.0.
-- **Ukuran:** 600 berita (228 hoaks, 372 valid), tahun 2017, dipublikasikan 15 Okt 2018; `600 news with valid hoax label.csv`. **(cek ulang)**
+- **Versi dipakai:** 600 berita (`600 news with valid hoax label.csv`) dan lembar pelabelan `600 news labelling process.xlsx` (URL + 3 penilai per artikel, sheet KW1–KW12). Paket unduhan juga memuat versi 250 berita; tidak dipakai.
+- **Cara pengumpulan:** 12 topik × 50 artikel, dikumpulkan dari pencarian Google atas 12 klaim viral. Tahun terbaca dari URL hanya untuk 247 dari 600 artikel (238 di antaranya 2014–2018); sisanya tidak terbaca.
+- **Skrip:** `classification/data_audit/mendeley_audit.py`, `classification/baseline.py`. Manifest tanpa teks artikel: `data/manifests/mendeley_manifest.csv` (join ke CSV lokal lewat `row_id` atau `text_sha1`).
 - **Catatan:** terlalu kecil dan tua untuk fine-tuning; hanya dipakai sebagai set uji lintas-domain.
+
+**Hasil audit** (dijalankan ulang 11 Nov 2026, `python classification/data_audit/mendeley_audit.py --data-dir data/raw/mendeley`):
+
+| Temuan | Nilai |
+|---|---|
+| Label mayoritas penilai | 370 valid / 230 hoaks. CSV bawaan: 372 / 228 |
+| Baris CSV berbeda dari mayoritas | 10, dan 9 di antaranya bertentangan dengan suara bulat 3–0 |
+| Kesepakatan penilai | Fleiss kappa 0,585; 70,3% suara bulat |
+| URL tercantum dua kali | 31 |
+| Artikel dengan near-duplicate (cosine TF-IDF ≥ 0,8, satu topik) | 282 artikel, 417 klaster |
+| Proporsi hoaks menurut domain | 16,1% untuk media arus utama, 47,4% untuk domain lain (heuristik kasar) |
+| Penanda bantahan (heuristik kata) | 69,2% pada kelas valid, 27,8% pada kelas hoaks |
+
+Label yang dipakai adalah **mayoritas penilai**, bukan kolom `tagging` di CSV.
+
+Kelas `valid` memuat artikel yang membantah hoaks, bukan hanya berita netral. Data Mafindo-2024 sebaliknya memberi label hoaks pada teks bertema hoaks, jadi transfer Mafindo → Mendeley berpotensi bentrok semantik label. Hasil lintas-sumber harus dilaporkan juga pada irisan tanpa artikel bantahan.
+
+**Baseline TF-IDF + regresi logistik** (macro-F1, out-of-fold; `python classification/baseline.py --data-dir data/raw/mendeley`, sklearn 1.6.1):
+
+| Protokol | Macro-F1 | Catatan |
+|---|---|---|
+| Mayoritas (semua valid) | 0,381 | CI bootstrap [0,366; 0,396] |
+| Acak 5-fold | 0,734, sd 0,010 | 20 ulangan, rentang [0,712; 0,756] |
+| 5-fold terkelompok per klaster near-duplicate | 0,704, sd 0,012 | 20 ulangan, rentang [0,681; 0,730] |
+| Leave-one-topic-out | 0,636 | deterministik; CI bootstrap [0,599; 0,677] |
+| Nama domain saja, acak | 0,575, sd 0,012 | 20 ulangan |
+| Nama domain saja, leave-one-topic-out | 0,561 | CI bootstrap [0,521; 0,605] |
+
+Cara membaca:
+- Kebocoran terbesar adalah **topik yang sama** (0,734 → 0,636 saat topik ditahan). Near-duplicate berpengaruh kecil (0,734 → 0,704).
+- Split terkelompok dilaporkan sebagai **rata-rata dan sebaran atas ulangan**. Satu kali jalan `GroupKFold` berubah sekitar ±0,02 hanya karena urutan klaster yang berukuran sama; ini bukan sinyal. Skrip audit sekali jalan memberi 0,709 (pada sklearn 1.6.1), sedangkan catatan awal tim memberi 0,716 (versi pustaka tidak diketahui); keduanya di dalam rentang ulangan (0,681–0,730).
+- Nama domain saja sudah melampaui tebakan mayoritas (0,56–0,58): sebagian sinyal adalah sumber, bukan isi.
+- CI bootstrap menyatakan ketidakpastian sampel (600 item) dan dihitung dari satu ulangan; sd menyatakan variasi split. Keduanya dilaporkan terpisah.
+
+**Uji cross-dataset Mafindo & Mendeley** (`classification/cross_dataset.py`, dijalankan di Colab, sklearn 1.6.1; TF-IDF kata min_df=3 + Logistic Regression seimbang, hanya `content`, threshold 0,5; satu kali jalan, CI bootstrap atas item uji):
+
+| Uji | Macro-F1 [CI 95%] | AUROC | Hoaks P / R | Hoaks terprediksi / sebenarnya |
+|---|---|---|---|---|
+| Referensi in-domain: Mafindo → Mafindo test (5.911) | 0,984 [0,981; 0,987] | 0,997 | 0,98 / 0,99 | 0,49 / 0,49 |
+| A. Mafindo → Mendeley 600 | 0,569 [0,529; 0,612] | 0,597 | 0,50 / 0,36 | 0,28 / 0,38 |
+| B. A, irisan tanpa penanda bantahan (n=280) | 0,493 [0,435; 0,549] | 0,493 | 0,61 / 0,41 | 0,40 / 0,59 |
+| B. A, irisan dengan penanda bantahan (n=320) | 0,551 [0,496; 0,610] | 0,569 | 0,29 / 0,25 | 0,17 / 0,20 |
+| D. A, artefak sumber dibuang di kedua sisi | 0,572 [0,533; 0,614] | 0,596 | 0,50 / 0,38 | 0,29 / 0,38 |
+| C. Mendeley 600 → Mafindo test | 0,464 [0,452; 0,475] | 0,561 | 0,50 / 0,86 | 0,83 / 0,49 |
+
+Cara membaca:
+- Skor in-domain 0,984 turun ke 0,569 saat model Mafindo diuji pada Mendeley; AUROC 0,597 hanya sedikit di atas tebakan acak. Skor in-domain mengukur pembedaan sumber/gaya, bukan deteksi hoaks.
+- Membuang artefak sumber (D) hampir tidak mengubah hasil (0,572 vs 0,569), konsisten dengan temuan in-domain.
+- Dugaan bentrok semantik label (artikel bantahan di Mendeley berlabel valid) **tidak terbukti menjadi penyebab utama**: pada irisan tanpa penanda bantahan AUROC justru 0,493 (CI 0,423–0,560, mencakup 0,5). Penanda bantahan adalah heuristik kata yang kasar dan irisannya kecil, jadi ini bukan bukti bahwa bentrok tidak ada.
+- Arah sebaliknya (C) gagal: dilatih pada 600 artikel, model menebak hoaks untuk 83% artikel Mafindo.
+- Per topik (n≈50, bising), proporsi hoaks terprediksi berkisar 0,00–0,74 sementara proporsi sebenarnya 0,20–0,54. Ini mengarah ke prediksi yang mengikuti topik/kosakata, tetapi belum diuji lebih lanjut.
+- Pembanding dalam Mendeley sendiri: TF-IDF + LR dengan leave-one-topic-out mencapai 0,636, di atas 0,569 dari model Mafindo.
+- Batas: satu kali jalan, ambang tetap 0,5, hanya `content`. Mendeley (artikel 2014–2018 dari banyak situs) dan Mafindo (2024, kelas hoaks berisi artikel cek fakta) berbeda domain dan waktu.
 
 ### IndoNLI — stance (pra-latih)
 
