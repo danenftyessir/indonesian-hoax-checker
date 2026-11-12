@@ -147,6 +147,30 @@ Cara membaca:
 - Waktu: sekitar 254 detik per epoch pada T4, sekitar 41 menit untuk 3 seed.
 - Model tidak disimpan (`--save-dir` tidak dipakai); skor per seed tersimpan di folder hasil Drive untuk kalibrasi dan analisis galat. Probe klaim pendek tidak dijalankan pada run ini.
 
+**Kalibrasi dan analisis galat IndoBERT pada Mendeley 600** (`classification/calibrate_analyze.py` pada skor 3 seed; dihitung lokal 12 Nov 2026; kalibrasi dipasang di dalam CV leave-one-topic-out, rata-rata antar seed; ambang 0,5):
+
+| | ECE (10 bin) | Brier | Macro-F1 | AUROC | Hoaks terprediksi |
+|---|---|---|---|---|---|
+| Skor mentah | 0,411 | 0,415 | 0,524 | 0,585 | 39,5% |
+| Temperature scaling | 0,080 | 0,244 | 0,524 | 0,537 | 39,5% |
+| Platt scaling | 0,016 | 0,237 | 0,381 | 0,515 | 0,0% |
+
+- Skor mentah sangat terlalu yakin di luar domain (ECE 0,41). Setelah dikalibrasi, ECE turun, tetapi Brier ≈ 0,24 sama dengan menebak proporsi hoaks (230/600) untuk semua item, sekitar 0,236. Platt scaling akhirnya memprediksi "valid" untuk semua item (macro-F1 0,381 = baseline mayoritas). Kalibrasi jujur menunjukkan skor tidak membawa informasi di luar domain; kalibrasi tidak memperbaiki akurasi.
+- AUROC berubah pada temperature scaling karena T berbeda per topik yang ditahan, lalu digabung; dalam satu topik urutan skor tetap.
+- Skor mentah sebaiknya tidak ditampilkan sebagai "keyakinan" di demo.
+
+Galat (skor rata-rata 3 seed, ambang 0,5): TP 103, FN 127, FP 144, TN 226 (recall hoaks 0,45; presisi 0,42).
+
+| Kategori | Temuan |
+|---|---|
+| Topik (n=50 tiap topik, bising) | Hoaks terprediksi 2–43 dari 50 (sebenarnya 10–27). Terbanyak salah: ikan lele (galat 0,66; 28 FP), tusuk jari (0,54; 24 FP), iPhone 6 (0,58). Peserta aksi 212: hanya 2 terprediksi hoaks dari 15 hoaks (15 FN). |
+| Tingkat sumber | Media arus utama galat 0,34 (n=174); domain lain 0,49 (n=426), mendekati tebakan. |
+| Penanda bantahan | Tanpa penanda (n=280): galat 0,54 (FN 93, FP 59). Dengan penanda (n=320): galat 0,37 (FN 34, FP 85). Dari 256 artikel valid ber-penanda, 85 (33%) dinilai hoaks. |
+| Kesepakatan penilai | Suara bulat (n=422): galat 0,41; tidak bulat (n=178): 0,54. |
+| Panjang artikel (kuartil) | Galat 0,42–0,48; korelasi Spearman skor dengan jumlah kata 0,07; AUROC jumlah kata saja 0,55. Panjang bukan pendorong utama di sini. |
+
+Prediksi mengikuti topik lebih dari kebenaran (pola yang sama dengan model TF-IDF), tetapi dengan n≈50 per topik ini baru indikasi. Penanda bantahan adalah heuristik kata yang kasar.
+
 ### IndoNLI — stance (pra-latih)
 
 - **URL:** https://raw.githubusercontent.com/ir-nlp-csui/indonli/main/data/indonli/train.jsonl
