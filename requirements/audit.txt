@@ -1,0 +1,8 @@
+# untuk classification/data_audit/*.py, baseline.py, cross_dataset.py
+# Keep in sync with pyproject.toml [project.optional-dependencies].audit
+numpy>=1.24
+pandas>=2.0
+scikit-learn>=1.3
+scipy>=1.10
+openpyxl>=3.1
+datasets>=2.18
