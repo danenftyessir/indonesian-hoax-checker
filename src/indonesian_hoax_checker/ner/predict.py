@@ -34,9 +34,20 @@ def to_result(entities: list[Entity]) -> NERResult:
     return {"entities": entities, "core_claim": claims[0] if claims else ""}
 
 
+def without_claim(tags: list[str]) -> list[str]:
+    return ["O" if t.endswith("CLAIM") else t for t in tags]
+
+
+def only_claim(tags: list[str]) -> list[str]:
+    return [t if t.endswith("CLAIM") else "O" for t in tags]
+
+
 class NERPredictor:
     # Jenis model dikenali dari isi folder checkpoint: model.pt = BiLSTM-CRF, selain itu IndoBERT
-    def __init__(self, checkpoint_dir: str, device: str = "auto"):
+    # claim_checkpoint (opsional) = model CLAIM terpisah: entitas PER/ORG/LOC/TIME diambil dari checkpoint_dir,
+    # span CLAIM dari claim_checkpoint, sehingga CLAIM tidak menimpa entitas di dalamnya
+    def __init__(self, checkpoint_dir: str, device: str = "auto", claim_checkpoint: str | None = None):
+        self.claim_model = NERPredictor(claim_checkpoint, device) if claim_checkpoint else None
         path = Path(checkpoint_dir)
         self.device = get_device(device)
         if (path / "model.pt").exists():
@@ -75,13 +86,20 @@ class NERPredictor:
     def predict_batch(self, texts: list[str]) -> list[NERResult]:
         sentences = [split_sentences(tokenize(text)) for text in texts]
         flat = [s for per_text in sentences for s in per_text]
-        tags = iter(self.tag([[tok for tok, _, _ in s] for s in flat]))
+        words = [[tok for tok, _, _ in s] for s in flat]
+        tags = iter(self.tag(words))
+        claim_tags = iter(self.claim_model.tag(words)) if self.claim_model else None
 
         results = []
         for text, per_text in zip(texts, sentences):
             entities = []
             for sentence in per_text:
-                entities += to_entities(text, sentence, next(tags))
+                tag_seq = next(tags)
+                if claim_tags is not None:
+                    entities += to_entities(text, sentence, only_claim(next(claim_tags)))
+                    tag_seq = without_claim(tag_seq)
+                entities += to_entities(text, sentence, tag_seq)
+            entities.sort(key=lambda e: (e["start"], e["end"]))
             results.append(to_result(entities))
         return results
 
@@ -89,11 +107,12 @@ class NERPredictor:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Prediksi entitas dari teks.")
     parser.add_argument("--checkpoint", required=True, help="Folder checkpoint hasil ner.train")
+    parser.add_argument("--claim-checkpoint", help="Checkpoint model CLAIM terpisah (opsional)")
     parser.add_argument("--device", default="auto")
     parser.add_argument("text", nargs="+", help="Satu atau lebih teks")
     args = parser.parse_args()
 
-    predictor = NERPredictor(args.checkpoint, args.device)
+    predictor = NERPredictor(args.checkpoint, args.device, args.claim_checkpoint)
     for result in predictor.predict_batch(args.text):
         print(json.dumps(result, ensure_ascii=False, indent=2))
 

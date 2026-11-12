@@ -4,4 +4,7 @@ ner:
   # Checkpoint dari Drive hasil_training (ner_results.zip), diekstrak ke repo.
   # null = mode stub: entitas kosong, supaya task 2 dan 3 bisa jalan sebelum model tersedia.
   checkpoint: artifacts/checkpoints/ner/ner_indobert_seed42
+  # Model CLAIM terpisah (hasil ner_indobert_claim.yaml); isi bersama checkpoint entitas ner_indobert_entity_seed42.
+  # null = CLAIM tidak diprediksi (checkpoint di atas hanya PER/ORG/LOC).
+  claim_checkpoint: null
   device: auto

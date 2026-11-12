@@ -1,0 +1,1682 @@
+[
+ {
+  "data": {
+   "id": "informal-001",
+   "text": "pemerintah stop bansos mulai bsk gaes!!! sebarin ke grup kluarga",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan",
+    "tanda_baca"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 23,
+       "end": 64,
+       "text": "mulai bsk gaes!!! sebarin ke grup kluarga",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-002",
+   "text": "katanya kominfo mau matiin internet 3 hari mulai senin, bener gk sih?",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-TIME",
+    "I-TIME",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 36,
+       "end": 42,
+       "text": "3 hari",
+       "labels": [
+        "TIME"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 43,
+       "end": 68,
+       "text": "mulai senin, bener gk sih",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-003",
+   "text": "VIRAL!! Pak Prabowo resmikan bandara baru di bali kmrn",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "kapital",
+    "singkatan",
+    "tanda_baca"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-PER",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "B-TIME"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 12,
+       "end": 19,
+       "text": "Prabowo",
+       "labels": [
+        "PER"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 37,
+       "end": 49,
+       "text": "baru di bali",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 50,
+       "end": 54,
+       "text": "kmrn",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-004",
+   "text": "INFO PENTING!!! PERTALITE NAIK JADI 15RB/LITER MULAI 1 DESEMBER",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "kapital",
+    "tanda_baca"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-TIME",
+    "I-TIME"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 53,
+       "end": 63,
+       "text": "1 DESEMBER",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-005",
+   "text": "bpjs kesehatan bagi2 saldo 500rb lwt link ini, buruan daftar sblm ditutup",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "B-ORG",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 0,
+       "end": 4,
+       "text": "bpjs",
+       "labels": [
+        "ORG"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-006",
+   "text": "denger2 sekolah di jkt diliburin seminggu krn polusi, mulai rabu",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "B-LOC",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "O",
+    "O",
+    "B-TIME"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 19,
+       "end": 22,
+       "text": "jkt",
+       "labels": [
+        "LOC"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 23,
+       "end": 52,
+       "text": "diliburin seminggu krn polusi",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 60,
+       "end": 64,
+       "text": "rabu",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-007",
+   "text": "Kementrian Kesehtan bilang vaksin booster bikin mandul?? hati2 ya bun",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "typo",
+    "tanda_baca"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": []
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-008",
+   "text": "bank indonesia tarik uang 2000an dr peredaran akhir tahun ini, buruan tuker",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "B-ORG",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-TIME",
+    "I-TIME",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 5,
+       "end": 14,
+       "text": "indonesia",
+       "labels": [
+        "ORG"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 52,
+       "end": 61,
+       "text": "tahun ini",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-009",
+   "text": "pln padamin listrik se-jawa bali tgl 20 nov, siapin lilin guys",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan",
+    "campur_bahasa"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-LOC",
+    "O",
+    "B-TIME",
+    "I-TIME",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 28,
+       "end": 32,
+       "text": "bali",
+       "labels": [
+        "LOC"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 37,
+       "end": 43,
+       "text": "20 nov",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-010",
+   "text": "Lowongan kerja Pertamina tanpa tes, cukup transfer biaya admin 250rb. Hub wa dibawah",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "B-ORG",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 15,
+       "end": 24,
+       "text": "Pertamina",
+       "labels": [
+        "ORG"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-011",
+   "text": "gempa magnitudo 8 bakal guncang padang mggu dpn kata bmkg 😱😱",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan",
+    "emoji"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 18,
+       "end": 60,
+       "text": "bakal guncang padang mggu dpn kata bmkg 😱😱",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-012",
+   "text": "ktp lama gak berlaku lg mulai januari 2027, wajib ganti ke ktp digital",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "O",
+    "B-TIME",
+    "I-TIME",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 13,
+       "end": 23,
+       "text": "berlaku lg",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 30,
+       "end": 42,
+       "text": "januari 2027",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-013",
+   "text": "Sri mulyani umumin pajak motor naik 2x lipat taun depan!!!",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "kapital",
+    "typo",
+    "tanda_baca"
+   ],
+   "auto_tags": [
+    "B-PER",
+    "B-PER",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 0,
+       "end": 3,
+       "text": "Sri",
+       "labels": [
+        "PER"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 4,
+       "end": 11,
+       "text": "mulyani",
+       "labels": [
+        "PER"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-014",
+   "text": "polisi gak tilang lg di jalan, semua pke kamera etle mulai hr ini",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 53,
+       "end": 65,
+       "text": "mulai hr ini",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-015",
+   "text": "MBG dihentikan smua per bulan depan, anggarannya dipake buat proyek lain",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "B-TIME",
+    "I-TIME",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 4,
+       "end": 23,
+       "text": "dihentikan smua per",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 24,
+       "end": 35,
+       "text": "bulan depan",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-016",
+   "text": "kemenag batalin keberangkatan haji thn 2027 krn kuota habis, wah parah",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": []
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-017",
+   "text": "air pdam surabaya tercemar bakteri, jgn diminum dlu sampe minggu depan",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "B-LOC",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "B-TIME",
+    "I-TIME"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 9,
+       "end": 17,
+       "text": "surabaya",
+       "labels": [
+        "LOC"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 18,
+       "end": 57,
+       "text": "tercemar bakteri, jgn diminum dlu sampe",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 58,
+       "end": 70,
+       "text": "minggu depan",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-018",
+   "text": "breaking news: gibran jadi plt presiden mulai besok pagi #viral",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "campur_bahasa",
+    "hashtag"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "B-PER",
+    "O",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 15,
+       "end": 21,
+       "text": "gibran",
+       "labels": [
+        "PER"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 40,
+       "end": 63,
+       "text": "mulai besok pagi #viral",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-019",
+   "text": "WHO nyatain indonesia darurat cacar monyet, semua bandara ditutup",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase"
+   ],
+   "auto_tags": [
+    "B-ORG",
+    "O",
+    "B-LOC",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 0,
+       "end": 3,
+       "text": "WHO",
+       "labels": [
+        "ORG"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 12,
+       "end": 21,
+       "text": "indonesia",
+       "labels": [
+        "LOC"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-020",
+   "text": "blt dana desa 900rb cair hari jumat, cek nama kamu di link berikut ya",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-TIME",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 30,
+       "end": 35,
+       "text": "jumat",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-021",
+   "text": "Gubernur Jawa Barat larang ojol beroperasi di bandung mulai 1 desember???",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "kapital",
+    "singkatan",
+    "tanda_baca"
+   ],
+   "auto_tags": [
+    "O",
+    "B-LOC",
+    "I-LOC",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "O",
+    "B-TIME",
+    "I-TIME",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 9,
+       "end": 19,
+       "text": "Jawa Barat",
+       "labels": [
+        "LOC"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 32,
+       "end": 53,
+       "text": "beroperasi di bandung",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 60,
+       "end": 70,
+       "text": "1 desember",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-022",
+   "text": "tlg share!! garam merk tertentu dicampur plastik, ditemuin bpom di semarang",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan",
+    "tanda_baca"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 32,
+       "end": 75,
+       "text": "dicampur plastik, ditemuin bpom di semarang",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-023",
+   "text": "katanya OJK bakal blokir smua rekening yg ga update data sblm 31 desember",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "B-TIME",
+    "I-TIME"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 12,
+       "end": 61,
+       "text": "bakal blokir smua rekening yg ga update data sblm",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 62,
+       "end": 73,
+       "text": "31 desember",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-024",
+   "text": "jalan tol cipali digratisin slama libur nataru, info dr jasa marga",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan",
+    "typo"
+   ],
+   "auto_tags": [
+    "B-LOC",
+    "I-LOC",
+    "I-LOC",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 0,
+       "end": 16,
+       "text": "jalan tol cipali",
+       "labels": [
+        "LOC"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 17,
+       "end": 46,
+       "text": "digratisin slama libur nataru",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-025",
+   "text": "kpu ganti tanggal pilkada ulang jd februari 2027 ges",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-TIME",
+    "I-TIME",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 35,
+       "end": 48,
+       "text": "februari 2027",
+       "labels": [
+        "TIME"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-026",
+   "text": "Pak Menteri Kesehatan Budi Gunadi bilang rs boleh nolak pasien bpjs mulai skrg",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "singkatan",
+    "kapital"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "B-PER",
+    "I-PER",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 22,
+       "end": 33,
+       "text": "Budi Gunadi",
+       "labels": [
+        "PER"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 68,
+       "end": 78,
+       "text": "mulai skrg",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-027",
+   "text": "banjir rob bkl tenggelamin jakarta utara thn depan, warga disuruh ngungsi",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-LOC",
+    "I-LOC",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 27,
+       "end": 40,
+       "text": "jakarta utara",
+       "labels": [
+        "LOC"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 58,
+       "end": 73,
+       "text": "disuruh ngungsi",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-028",
+   "text": "ini beneran ga sih??? wkwk ada yg tau",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "tanda_baca",
+    "tanpa_claim"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": []
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-029",
+   "text": "Selamat pagi semua, semoga sehat selalu ya 🙏",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "emoji",
+    "tanpa_claim"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": []
+   }
+  ]
+ },
+ {
+  "data": {
+   "id": "informal-030",
+   "text": "kata temen sy yg kerja di telkomsel, kuota internet bakal dihapus diganti paket bulanan wajib",
+   "source": "informal",
+   "origin_id": null,
+   "published_at": null,
+   "split": "informal_test",
+   "phenomena": [
+    "lowercase",
+    "singkatan"
+   ],
+   "auto_tags": [
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "O",
+    "B-ORG",
+    "O",
+    "O",
+    "O",
+    "B-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM",
+    "I-CLAIM"
+   ]
+  },
+  "predictions": [
+   {
+    "model_version": "otomatis",
+    "result": [
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 26,
+       "end": 35,
+       "text": "telkomsel",
+       "labels": [
+        "ORG"
+       ]
+      }
+     },
+     {
+      "from_name": "label",
+      "to_name": "text",
+      "type": "labels",
+      "value": {
+       "start": 52,
+       "end": 93,
+       "text": "bakal dihapus diganti paket bulanan wajib",
+       "labels": [
+        "CLAIM"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ }
+]

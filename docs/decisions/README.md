@@ -15,5 +15,6 @@ Satu file per keputusan dari lembar keputusan di *Resolusi Diskusi dan Audit Dat
 | [0009](0009-nama-label-klasifikasi.md) | Nama label klasifikasi | Final |
 | [0010](0010-klasifikasi-dan-retrieval-paralel.md) | Klasifikasi dan retrieval paralel | Final |
 | [0011](0011-keputusan-teknis-tambahan.md) | Kontrak schemas, parafrasa, base model stance, compute, akses data | Final |
+| [0012](0012-layer-entitas-dan-claim-terpisah.md) | Layer entitas dan CLAIM dilatih terpisah | Final |
 
 Format tiap file: Konteks, Keputusan, Alasan, Konsekuensi.
