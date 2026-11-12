@@ -10,7 +10,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 |---|---|---|---|
 | 1 NER | NERGrit train (1.672, cased) + seed ±1.350 (label otomatis); NERP dedup (6.397) hanya varian lowercase | NERGrit valid (209), seed dev 50 | Seed test 100 (dikoreksi manual) + 30 kalimat informal |
 | 2 Klasifikasi | Mafindo-2024 train (23.641) | Mafindo-2024 test (5.911) | Mendeley 600 (label mayoritas penilai: 230 hoaks / 370 valid), 300 klaim pendek, 200 klaim Komdigi netral |
-| 3a Retrieval | — (BM25 / embedding siap pakai) | Basis Komdigi 3.043 klaim | 300 kueri: 100 judul asli, 100 parafrasa, 100 tanpa padanan |
+| 3a Retrieval | — (BM25 / embedding siap pakai) | Basis Komdigi 3.048 klaim | 300 kueri: 100 judul asli, 100 parafrasa, 100 tanpa padanan |
 | 3b Stance | IndoNLI train (10.330) + pasangan BRIN | IndoNLI val (2.197), test_expert (2.984) | 300 pasangan beranotasi tim |
 
 ## Dataset utama
@@ -19,7 +19,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 
 - **URL:** https://www.kaggle.com/datasets/ireddragonicy/indonesian-hoax-news-dataset
 - **Lisensi:** Apache 2.0. Diperbarui harian dari API resmi Komdigi.
-- **Ukuran:** 3.043 record (versi 396, 10 Nov 2026), artikel 28 Des 2024 – 10 Nov 2026. File `komdigi_hoaks.csv`, 10,07 MB. **(cek ulang)**
+- **Ukuran:** 3.048 record (versi 396, diunduh 11 Nov 2026), artikel 27 Des 2024 – 9 Nov 2026. File `komdigi_hoaks.csv`, 10,07 MB (10.073.039 byte). Jumlah baris dan rentang tanggal dicek ulang dari salinan di Drive tim (3.048 baris, tanggal terawal 2024-12-27, terakhir 2026-11-09).
 - **Kolom:** `id`, `url`, `title`, `slug`, `published_at`, `view_count`, `excerpt`, `body_html`, `body_text`, `main_image_url`, `category`, `tags`, `topics`.
 - **Catatan:**
   - Angka "15.000 record" di deskripsi tidak berlaku lagi (sisa portal lama kominfo.go.id).
