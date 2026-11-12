@@ -81,18 +81,21 @@ Dibuat dan diolah dengan `python -m indonesian_hoax_checker.ner.annotation` (lih
 |---|---|---|
 | `id` | str | ID unik, mis. `komdigi-1234-1` |
 | `text` | str | Satu kalimat |
+| `title` | str | Judul artikel asal (Komdigi tanpa "[HOAKS]"); petunjuk pelabel CLAIM otomatis |
 | `source` | str | `komdigi` atau `mafindo` |
 | `origin_id` | str | ID artikel asal |
-| `published_at` | str \| null | Tanggal artikel (ISO 8601); menentukan apakah kalimat wajib masuk test |
-| `batch` | str | `calibration` (100 kalimat untuk kappa), `main`, atau `informal_test` |
+| `published_at` | str \| null | Tanggal artikel (ISO 8601); Komdigi sejak 1 Sep 2026 hanya boleh masuk test |
+| `split` | str | `train` (label otomatis saja), `dev` atau `test` (dikoreksi manual), `informal_test` |
 
 **`informal_sentences.jsonl`** — 30 kalimat uji informal buatan tim, format sama dengan `seed_sentences.jsonl` dengan `source: informal`. Tidak masuk train/dev/test seed; menjadi `seed_informal_test.conll`.
 
-**`label_studio_tasks.json`** — file impor Label Studio, berisi pra-anotasi (TIME dari aturan, PER/ORG/LOC dari model baseline).
+**`seed_auto.jsonl`** — semua kalimat `seed_sentences.jsonl` ditambah `tokens` dan `tags` (IOB2) hasil label otomatis.
 
-**`export_*.json`** — ekspor JSON dari Label Studio (semua annotator dalam satu file).
+**`label_studio_tasks.json`** — file impor Label Studio untuk kalimat dev/test; label otomatis sebagai prediksi, salinannya di `data.auto_tags` untuk laporan koreksi.
 
-**`seed_adjudicated.jsonl`** — versi final per kalimat: semua field `seed_sentences.jsonl` ditambah `tokens` (list[str]) dan `tags` (list[str], IOB2). Dari file ini dibuat `data/processed/ner/seed_{train,dev,test}.conll`.
+**`export_*.json`** — ekspor JSON dari Label Studio.
+
+**`seed_adjudicated.jsonl`** — versi final per kalimat: field `seed_sentences.jsonl` ditambah `tokens`, `tags`, dan `quality` (`human` = dikoreksi, `silver` = label otomatis). Dari file ini dibuat `data/processed/ner/seed_{train,dev,test}.conll`.
 
 ## Split — `data/splits/`
 

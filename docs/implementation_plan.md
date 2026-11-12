@@ -32,8 +32,7 @@ Fase 0 selesai (dependensi, entry point CLI, label, keputusan, docs). Task NER s
 - Tulis pedoman anotasi CLAIM (span) dan TIME, satu halaman dengan 10 contoh (termasuk negasi dan klaim ganda).
 
 **Bersama**
-- Anotasi 100 kalimat kalibrasi, hitung Cohen's kappa per label. Revisi pedoman bila kappa CLAIM < 0,6.
-- Anotasi seed set 400 kalimat (300 "Beredar ..." Komdigi + 100 berita benar), dua annotator per kalimat.
+- Seed set ±1.500 kalimat CLAIM/TIME: label otomatis (model + aturan), lalu Jonathan mengoreksi dev 50 + test 100 di Label Studio ([0007](decisions/0007-seed-set-dan-annotator.md)).
 - Anotasi 300 pasangan stance (100 supports, 100 refutes, 100 unrelated), diverifikasi dua orang.
 - Buat `data/short_claims.jsonl` (300 klaim pendek: 150 judul Komdigi tanpa prefiks, 150 kalimat pertama berita Tempo/Kompas). Pemilik Dzaky, diverifikasi Danendra.
 - Bekukan split dan simpan hash di `data/splits/`. Test set = artikel Komdigi sejak 1 Sep 2026. Unduh ulang Kaggle tepat sebelum pembekuan.

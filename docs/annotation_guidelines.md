@@ -1,6 +1,6 @@
 # Annotation Guidelines
 
-Pedoman anotasi untuk label **CLAIM** dan **TIME** (task 1) serta **pasangan stance** (task 3b). Versi: **1.0**. Bila kappa kalibrasi di bawah ambang, pedoman direvisi dan versinya dinaikkan. Pemilik: Jonathan.
+Pedoman anotasi untuk label **CLAIM** dan **TIME** (task 1) serta **pasangan stance** (task 3b). Versi: **1.1**. Seed set dibuat dengan **label otomatis lalu dikoreksi satu annotator** (Jonathan); lihat [0007](decisions/0007-seed-set-dan-annotator.md). Pemilik: Jonathan.
 
 Contoh kalimat di dokumen ini dibuat untuk ilustrasi, bukan kutipan dari dataset.
 
@@ -49,33 +49,31 @@ Aturan:
 
 Contoh 5 dan 10 adalah kasus batas; ikuti anotasi di tabel ini.
 
-### Alat: Label Studio
+### Alur: label otomatis, lalu koreksi manual
 
-Label Studio dijalankan lokal (`pip install label-studio`, lalu `label-studio start`). Buat proyek dengan konfigurasi `configs/annotation/label_studio_ner.xml`.
+Label Studio dijalankan lokal (`pipx install label-studio`, lalu `label-studio start`, buka `http://localhost:8080`).
 
-1. Buat `data/annotations/ner/seed_sentences.jsonl` (format di [data_dictionary.md](data_dictionary.md)):
-   `python -m indonesian_hoax_checker.ner.seed_sentences`
-   Skrip ini memilih 300 kalimat "Beredar ..." dari CSV Komdigi (unduh dulu dari Kaggle, lihat `configs/data_sources.yaml`) dan 100 kalimat pertama berita benar Mafindo-2024 (split train). 100 kalimat ditandai `batch: calibration` (75 Komdigi + 25 Mafindo).
-   Kalimat uji informal (30, ditulis tim) disimpan terpisah di `data/annotations/ner/informal_sentences.jsonl`; contoh format di `informal_sentences.example.jsonl`. Tulis kalimat yang realistis seperti pesan WhatsApp/media sosial, bukan salinan contoh.
-2. Buat file impor berisi pra-anotasi, mulai dari batch kalibrasi:
-   `python -m indonesian_hoax_checker.ner.annotation tasks --batch calibration --checkpoint <checkpoint NER baseline>`
-   Setelah kappa lolos: `--batch main`, lalu kalimat informal dengan `--input data/annotations/ner/informal_sentences.jsonl`.
-   TIME diisi dari aturan (`ner/time_rules.py`), PER/ORG/LOC dari model baseline (tanpa `--checkpoint`: hanya TIME). CLAIM selalu manual.
-3. Impor `label_studio_tasks.json` ke proyek. Annotator **mengoreksi** pra-anotasi, bukan menerimanya begitu saja.
-4. Ekspor hasil sebagai JSON ke `data/annotations/ner/export_<tanggal>.json`.
+1. **Pilih kalimat:** `python -m indonesian_hoax_checker.ner.seed_sentences`
+   Menulis `seed_sentences.jsonl` dengan field `split`: test 100 (60 Komdigi sejak 1 Sep 2026 + 40 Mafindo), dev 50, dan kandidat train 1.545. Tiap kalimat menyimpan `title` (judul artikel) sebagai petunjuk CLAIM. Butuh CSV Komdigi dari Kaggle (`configs/data_sources.yaml`).
+2. **Label otomatis semua kalimat:**
+   `python -m indonesian_hoax_checker.ner.annotation auto --checkpoint artifacts/checkpoints/ner/ner_indobert_seed42`
+   PER/ORG/LOC dari model NER tahap 1, TIME dari `ner/time_rules.py`, CLAIM dari `ner/claim_rules.py` (penanda klaim, judul artikel Komdigi, dan struktur predikat; lihat komentar di file itu). Hasil: `seed_auto.jsonl`.
+3. **Buat tugas koreksi:** `python -m indonesian_hoax_checker.ner.annotation tasks`
+   Hanya kalimat dev dan test (150) yang masuk `label_studio_tasks.json`; train tidak dikoreksi.
+4. **Koreksi di Label Studio:** buat proyek, tempel `configs/annotation/label_studio_ner.xml` di *Labeling Setup*, impor `label_studio_tasks.json`. Label otomatis tampil sebagai prediksi; perbaiki yang salah (tambah, hapus, geser batas) sesuai Bagian A, lalu **Submit** tiap kalimat. Jangan menerima label otomatis tanpa membaca kalimatnya.
+5. **Ekspor** hasil sebagai JSON ke `data/annotations/ner/export_<tanggal>.json`.
 
-### Proses
+### Proses setelah koreksi
 
-1. **Kalibrasi:** ketiga anggota menganotasi 100 kalimat yang sama. Hitung kappa:
-   `python -m indonesian_hoax_checker.ner.annotation kappa --export <ekspor>`
-   (Cohen's kappa per label tingkat token, rata-rata semua pasangan annotator.)
-2. Bila kappa CLAIM **< 0,6**: pemilik pedoman (Jonathan) menambahkan aturan untuk kasus yang berbeda, menaikkan versi, lalu kalibrasi diulang pada sampel baru.
-3. Bila **≥ 0,6**: sisa kalimat dibagi, dua annotator per kalimat.
-4. **Adjudikasi:** kalimat yang anotasinya berbeda dianotasi ulang oleh annotator ketiga (adjudikator), lalu:
-   `python -m indonesian_hoax_checker.ner.annotation build --export <ekspor> --adjudicator <email adjudikator>`
-   Hasil: `data/annotations/ner/seed_adjudicated.jsonl`. Kalimat yang masih berbeda dan belum diadjudikasi dicetak dan tidak ikut.
-5. **Split:** `python -m indonesian_hoax_checker.ner.annotation split` membuat `seed_{train,dev,test}.conll` (dev 50, test 50; kalimat Komdigi sejak 1 Sep 2026 wajib masuk test) dan `seed_informal_test.conll` dari kalimat informal. Langkah ini juga dijalankan otomatis di notebook Colab.
-6. Catat setiap perubahan aturan di bagian *Riwayat* di bawah.
+1. **Laporan koreksi:** `python -m indonesian_hoax_checker.ner.annotation report --export <ekspor>`
+   Membandingkan label otomatis dengan hasil koreksi (hasil koreksi = kunci jawaban): persentase kalimat yang tidak diubah, dan precision/recall/F1 label otomatis per tipe. Angka ini menjadi perkiraan kualitas data latih (silver) dan dilaporkan sebagai bagian dari eksperimen.
+2. **Gabungkan:** `python -m indonesian_hoax_checker.ner.annotation build --export <ekspor>`
+   Hasil `seed_adjudicated.jsonl`: dev/test dari hasil koreksi (`quality: human`), train dari label otomatis (`quality: silver`). Kalimat train yang tidak mendapat CLAIM dari aturan dibuang (label O di kalimat itu kemungkinan besar salah). Kalimat dev/test yang belum dikoreksi tidak dipakai dan dicetak sebagai peringatan.
+3. **Split:** `python -m indonesian_hoax_checker.ner.annotation split` menulis `seed_{train,dev,test}.conll` (dan `seed_informal_test.conll` bila ada kalimat informal). Dijalankan otomatis di notebook Colab.
+4. Bila ada beberapa annotator, `kappa --export <ekspor> [<ekspor lain> ...]` dan `build --adjudicator` tetap tersedia.
+5. Catat setiap perubahan aturan di bagian *Riwayat* di bawah.
+
+**Batasan:** dengan satu annotator, tidak ada kesepakatan antar-annotator (kappa). Ini dicatat sebagai keterbatasan di laporan.
 
 ## Bagian B — Pasangan stance
 
@@ -98,3 +96,4 @@ Aturan:
 | Versi | Tanggal | Perubahan |
 |---|---|---|
 | 1.0 | 2026-11-11 | Versi pertama |
+| 1.1 | 2026-11-12 | Label otomatis + koreksi satu annotator; seed 1.500 kalimat |

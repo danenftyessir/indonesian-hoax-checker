@@ -8,7 +8,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 
 | Task | Latih | Validasi / uji in-domain | Uji buatan sendiri |
 |---|---|---|---|
-| 1 NER | NERGrit train (1.672, cased) + seed 300; NERP dedup (6.397) hanya varian lowercase | NERGrit valid (209), seed 50 | Seed test 50 + 30 kalimat informal |
+| 1 NER | NERGrit train (1.672, cased) + seed ±1.350 (label otomatis); NERP dedup (6.397) hanya varian lowercase | NERGrit valid (209), seed dev 50 | Seed test 100 (dikoreksi manual) + 30 kalimat informal |
 | 2 Klasifikasi | Mafindo-2024 train (23.641) | Mafindo-2024 test (5.911) | Mendeley 600, 300 klaim pendek, 200 klaim Komdigi netral |
 | 3a Retrieval | — (BM25 / embedding siap pakai) | Basis Komdigi 3.043 klaim | 300 kueri: 100 judul asli, 100 parafrasa, 100 tanpa padanan |
 | 3b Stance | IndoNLI train (10.330) + pasangan BRIN | IndoNLI val (2.197), test_expert (2.984) | 300 pasangan beranotasi tim |
@@ -89,7 +89,7 @@ Ditolak: COVID-19 Indonesian misinformation tweets (hanya ID tweet), MultiClaim/
 
 | File | Isi | Pemilik |
 |---|---|---|
-| `data/annotations/ner/` | Seed set 400 kalimat CLAIM/TIME | Jonathan (anotasi bersama) |
+| `data/annotations/ner/` | Seed set ±1.500 kalimat CLAIM/TIME: train label otomatis, dev 50 + test 100 dikoreksi manual | Jonathan |
 | `data/annotations/claim_verification/` | 300 pasangan stance | Danendra (verifikasi dua orang) |
 | `data/short_claims.jsonl` | 300 klaim pendek untuk uji klasifikasi | Dzaky, diverifikasi Danendra |
 | `data/demo_cases.txt` | Kasus uji demo CLI | Semua |

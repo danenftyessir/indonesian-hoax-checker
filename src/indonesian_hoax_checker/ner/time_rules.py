@@ -81,6 +81,13 @@ def time_spans(tokens: list[str]) -> list[tuple[int, int]]:
     lower = [t.lower() for t in tokens]
     spans, i = [], 0
     while i < len(lower):
+        # Nomor peraturan/pasal bukan waktu, mis. "No 28 Tahun 2024"
+        if i > 0 and lower[i - 1] in {"no", "nomor", "nomer", "pasal", "ayat", "uu", "pp"}:
+            j = i
+            while j < len(lower) and (lower[j].isdigit() or lower[j] in {"tahun", "/", "-", "."}):
+                j += 1
+            i = max(j, i + 1)
+            continue
         length = max(_match(p, lower, i) for p in PATTERNS)
         if length:
             spans.append((i, i + length))

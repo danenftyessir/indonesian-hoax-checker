@@ -1,6 +1,5 @@
 import csv
 
-from indonesian_hoax_checker.ner.annotation import split_seed
 from indonesian_hoax_checker.ner.dataset import write_conll
 from indonesian_hoax_checker.ner.error_analysis import analyze
 from indonesian_hoax_checker.ner.seed_sentences import komdigi_sentences, mafindo_sentences, select, split_text
@@ -14,6 +13,15 @@ def test_split_text_handles_missing_space():
 def test_split_text_keeps_quoted_sentence_whole():
     text = "Beredar narasi “HEBOH!! Pemerintah menghentikan bantuan.” di Facebook. Faktanya salah."
     assert split_text(text) == ["Beredar narasi “HEBOH!! Pemerintah menghentikan bantuan.” di Facebook.", "Faktanya salah."]
+
+
+def test_komdigi_prefix_with_category_is_removed(tmp_path):
+    path = tmp_path / "k.csv"
+    with open(path, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.DictWriter(f, ["id", "published_at", "body_text"])
+        w.writeheader()
+        w.writerow({"id": "9", "published_at": "2025-02-01", "body_text": "KATEGORI: HOAKS Penjelasan : Beredar unggahan yang mengeklaim bansos dihentikan."})
+    assert komdigi_sentences(path)[0]["text"].startswith("Beredar unggahan")
 
 
 def test_komdigi_takes_first_beredar_sentence(tmp_path):
@@ -38,19 +46,18 @@ def test_mafindo_keeps_only_valid_articles():
     assert [r["text"] for r in rows] == ["Presiden Joko Widodo meresmikan bandara baru di Kediri."]
 
 
-def test_select_marks_calibration_by_source_ratio():
-    komdigi = [{"text": f"k{i}", "source": "komdigi"} for i in range(30)]
-    mafindo = [{"text": f"m{i}", "source": "mafindo"} for i in range(10)]
-    rows = select(komdigi, mafindo, n_komdigi=30, n_mafindo=10, n_calibration=8)
-    calibration = [r for r in rows if r["batch"] == "calibration"]
-    assert len(rows) == 40
-    assert sum(r["source"] == "komdigi" for r in calibration) == 6 and len(calibration) == 8
-
-
-def test_split_seed_excludes_informal():
-    rows = [{"id": "i1", "source": "informal"}] + [{"id": f"m{i}", "source": "mafindo"} for i in range(10)]
-    train, dev, test = split_seed(rows, n_dev=2, n_test=2)
-    assert "i1" not in {r["id"] for r in train + dev + test}
+def test_select_assigns_splits_and_keeps_test_period_out_of_train():
+    komdigi = [{"id": f"k{i}", "text": f"k{i}", "source": "komdigi",
+                "published_at": "2026-10-01" if i < 5 else "2025-01-01"} for i in range(30)]
+    mafindo = [{"id": f"m{i}", "text": f"m{i}", "source": "mafindo", "published_at": None} for i in range(20)]
+    composition = {"train": {"komdigi": 10, "mafindo": 8}, "dev": {"komdigi": 3, "mafindo": 2},
+                   "test": {"komdigi": 4, "mafindo": 3}}
+    rows = select(komdigi, mafindo, composition)
+    by_split = {s: [r for r in rows if r["split"] == s] for s in ("train", "dev", "test")}
+    assert [len(by_split[s]) for s in ("train", "dev", "test")] == [18, 5, 7]
+    test_komdigi = [r for r in by_split["test"] if r["source"] == "komdigi"]
+    assert all(r["published_at"] >= "2026-09-01" for r in test_komdigi)
+    assert all(r["published_at"] < "2026-09-01" for r in by_split["train"] + by_split["dev"] if r["source"] == "komdigi")
 
 
 def test_load_config_inherits_base(tmp_path):
