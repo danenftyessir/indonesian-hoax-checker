@@ -36,6 +36,10 @@ def run_evaluation(
     reference_date: str | None = None,
     rejection_threshold: float | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    # Kueri kosong = parafrasa yang belum ditulis. Jangan dihitung: kueri kosong tidak punya padanan
+    # (success 0) dan selalu "ditolak", sehingga merusak success@k dan false_rejection_rate.
+    n_empty = sum(1 for q in queries if not (q.get("query") or "").strip())
+    queries = [q for q in queries if (q.get("query") or "").strip()]
     retriever = build_retriever(config)
     retriever.top_k = max(top_k, retriever.top_k)
     claim_dates = {c["claim_id"]: c.get("published_at", "") for c in retriever.claims}
@@ -63,14 +67,20 @@ def run_evaluation(
     qtypes = {q["query_id"]: q.get("type", "unknown") for q in queries}
 
     result: dict[str, Any] = {
+        "n_skipped_empty_queries": n_empty,
         "overall": M.evaluate_rankings(run, gold),
         "by_type": M.by_query_type(run, gold, qtypes),
     }
     if any(is_no_match.values()):
         thr = rejection_threshold
+        threshold_source = "given"
         if thr is None:
+            # Ambang dicari di kueri yang sama dengan yang dinilai: optimistis. Untuk angka laporan,
+            # cari ambang di kueri dev lalu berikan lewat --rejection-threshold.
             thr = M.best_rejection_threshold(top_scores, is_no_match)["threshold"]
-        result["no_match"] = M.no_match_rejection(top_scores, is_no_match, float(thr))
+            threshold_source = "tuned_on_evaluated_queries (optimistic)"
+        result["no_match"] = {**M.no_match_rejection(top_scores, is_no_match, float(thr)),
+                              "threshold_source": threshold_source}
     if reference_date:
         result["by_claim_age"] = M.recall_by_claim_age(run, gold, claim_dates, reference_date)
     return result, predictions

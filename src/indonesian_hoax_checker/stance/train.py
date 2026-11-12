@@ -95,6 +95,12 @@ def main(argv: list[str] | None = None) -> int:
         pred = np.argmax(logits, axis=-1)
         return {"macro_f1": macro_f1([ID2LABEL[int(i)] for i in labels], [ID2LABEL[int(i)] for i in pred])}
 
+    # transformers 5 menghapus `warmup_ratio`; hitung warmup_steps sendiri supaya jalan di semua versi
+    bs = int(hp.get("batch_size", 16))
+    epochs = float(args.epochs or hp.get("epochs", 3))
+    total_steps = max(1, int(-(-len(train_rows) // bs) * epochs))
+    warmup_steps = int(total_steps * float(hp.get("warmup_ratio", 0.06)))
+
     targs = TrainingArguments(
         output_dir=args.output,
         seed=args.seed,
@@ -103,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
         per_device_eval_batch_size=int(hp.get("batch_size", 16)) * 2,
         num_train_epochs=float(args.epochs or hp.get("epochs", 3)),
         weight_decay=float(hp.get("weight_decay", 0.01)),
-        warmup_ratio=float(hp.get("warmup_ratio", 0.06)),
+        warmup_steps=warmup_steps,
         eval_strategy="epoch",
         save_strategy="epoch",
         load_best_model_at_end=True,

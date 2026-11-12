@@ -216,3 +216,20 @@ def test_no_match_prefer_short_and_whitespace():
     nm = [r for r in rows if r["type"] == "no_match"]
     assert [r["source_id"] for r in nm] == ["b", "a"]
     assert nm[1]["query"] == "panjang sekali kalimat ini ya"  # spasi ganda dirapikan, sumber tidak diubah
+
+
+def test_evaluate_skips_empty_queries_and_reports_threshold_source(tmp_path):
+    from indonesian_hoax_checker.retrieval import evaluate as E
+
+    claims = [{"claim_id": "1", "claim": "pemerintah hapus subsidi listrik", "clarification": "", "published_at": ""},
+              {"claim_id": "2", "claim": "harga beras naik bulan depan", "clarification": "", "published_at": ""}]
+    cp = tmp_path / "claims.jsonl"
+    cp.write_text("\n".join(json.dumps(c) for c in claims), encoding="utf-8")
+    cfg = {"scorer": "bm25", "claims_path": str(cp), "fields": ["claim"], "top_k": 5, "bm25": {"k1": 1.5, "b": 0.75}}
+    qs = [{"query_id": "a", "type": "original", "query": "subsidi listrik dihapus", "gold_claim_ids": ["1"]},
+          {"query_id": "b", "type": "paraphrase", "query": "", "gold_claim_ids": ["2"]},
+          {"query_id": "c", "type": "no_match", "query": "gempa bumi di laut", "gold_claim_ids": []}]
+    res, preds = E.run_evaluation(cfg, qs, top_k=5)
+    assert res["n_skipped_empty_queries"] == 1 and len(preds) == 2
+    assert res["overall"]["n_queries"] == 1 and res["overall"]["success@1"] == 1.0
+    assert "optimistic" in res["no_match"]["threshold_source"]
