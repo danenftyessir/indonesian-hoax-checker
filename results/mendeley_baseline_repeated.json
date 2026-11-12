@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "repeats": 20,
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "sklearn": "1.6.1",
+    "n": 600
+  },
+  "baselines": {
+    "majority_all_valid": {
+      "n_repeats": 1,
+      "macro_f1_mean": 0.381,
+      "macro_f1_sd": null,
+      "macro_f1_min": 0.381,
+      "macro_f1_max": 0.381,
+      "hoax_precision_mean": 0.0,
+      "hoax_recall_mean": 0.0,
+      "bootstrap_ci95_repeat0": [
+        0.366,
+        0.396
+      ]
+    },
+    "tfidf_lr__random_5fold": {
+      "n_repeats": 20,
+      "macro_f1_mean": 0.734,
+      "macro_f1_sd": 0.01,
+      "macro_f1_min": 0.712,
+      "macro_f1_max": 0.756,
+      "hoax_precision_mean": 0.651,
+      "hoax_recall_mean": 0.718,
+      "bootstrap_ci95_repeat0": [
+        0.7,
+        0.771
+      ]
+    },
+    "tfidf_lr__cluster_grouped_5fold": {
+      "n_repeats": 20,
+      "macro_f1_mean": 0.704,
+      "macro_f1_sd": 0.012,
+      "macro_f1_min": 0.681,
+      "macro_f1_max": 0.73,
+      "hoax_precision_mean": 0.613,
+      "hoax_recall_mean": 0.693,
+      "bootstrap_ci95_repeat0": [
+        0.663,
+        0.735
+      ]
+    },
+    "tfidf_lr__leave_one_topic_out": {
+      "n_repeats": 1,
+      "macro_f1_mean": 0.636,
+      "macro_f1_sd": null,
+      "macro_f1_min": 0.636,
+      "macro_f1_max": 0.636,
+      "hoax_precision_mean": 0.52,
+      "hoax_recall_mean": 0.726,
+      "bootstrap_ci95_repeat0": [
+        0.599,
+        0.677
+      ]
+    },
+    "domain_only__random_5fold": {
+      "n_repeats": 20,
+      "macro_f1_mean": 0.575,
+      "macro_f1_sd": 0.012,
+      "macro_f1_min": 0.55,
+      "macro_f1_max": 0.599,
+      "hoax_precision_mean": 0.467,
+      "hoax_recall_mean": 0.551,
+      "bootstrap_ci95_repeat0": [
+        0.551,
+        0.63
+      ]
+    },
+    "domain_only__leave_one_topic_out": {
+      "n_repeats": 1,
+      "macro_f1_mean": 0.561,
+      "macro_f1_sd": null,
+      "macro_f1_min": 0.561,
+      "macro_f1_max": 0.561,
+      "hoax_precision_mean": 0.451,
+      "hoax_recall_mean": 0.561,
+      "bootstrap_ci95_repeat0": [
+        0.521,
+        0.605
+      ]
+    }
+  }
+}

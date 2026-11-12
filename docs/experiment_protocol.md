@@ -34,6 +34,7 @@ Aturan bersama supaya semua eksperimen bisa dibandingkan. Config tiap RQ ada di 
 | Data | Mafindo-2024 train/test (stratified, setelah dedup judul) |
 | Metrik | Macro-F1; precision dan recall kelas `hoax`; kalibrasi skor (ECE, reliability diagram) |
 | Ablasi | Dengan/tanpa fitur entitas NER |
+| Protokol Mendeley | Acak 5-fold, 5-fold terkelompok per klaster near-duplicate, leave-one-topic-out. Split acak dan terkelompok diulang (rata-rata dan sd); lihat `classification/baseline.py`. Label = mayoritas penilai |
 | Uji wajib | F1 in-domain **dan** lintas-sumber (Mendeley 600, 300 klaim pendek, 200 klaim Komdigi netral) berdampingan |
 
 Selisih besar antara in-domain dan lintas-sumber = bukti konfound sumber ([0001](decisions/0001-sumber-kelas-valid.md)); dilaporkan, bukan disembunyikan.

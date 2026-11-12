@@ -1,0 +1,14 @@
+# Retrieval baseline (task 3a): BM25 di atas basis klaim Komdigi. Dibaca retrieval/search.py.
+scorer: bm25
+claims_path: data/processed/refuted_claims/claims.jsonl
+# Field klaim yang digabung menjadi dokumen. Ablasi: [claim] saja vs + claim_sentence.
+fields: [claim, claim_sentence]
+top_k: 10
+# Ambang skor untuk menolak kueri tanpa padanan; null = pakai best_rejection_threshold di dev.
+min_score: null
+bm25:
+  k1: 1.5
+  b: 0.75
+# RQ3: penyempitan kandidat berbasis entitas (PER/ORG/LOC). Butuh prediksi NER atas basis klaim.
+entity_filter: false
+corpus_entities_path: data/processed/refuted_claims/claims_entities.jsonl

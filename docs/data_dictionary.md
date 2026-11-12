@@ -14,9 +14,13 @@ Satu baris per artikel Komdigi.
 | `clarification` | str | `body_text` bersih (tanpa HTML) |
 | `url` | str | Tautan artikel Komdigi |
 | `published_at` | str | Tanggal ISO 8601 |
-| `tags` | list[str] | Dari kolom `tags`/`topics` |
+| `tags` | list[str] | Dari kolom `tags`/`topics`, huruf kecil |
+| `title_tags` | list[str] | Prefiks judul yang dibuang, mis. `["HOAKS"]`, `["DISINFORMASI"]` |
+| `fact_sentence` | str \| null | Kalimat bantahan pertama ("Faktanya, ..."); draf hypothesis `refutes` |
 | `cluster_id` | int | Klaster near-duplicate ([0008](decisions/0008-near-duplicate-dan-pembekuan-test-set.md)) |
-| `split` | str | `train` / `dev` / `test` |
+| `split` | str | `train` / `dev` / `test`; dev = klaster bertanggal terbaru 1 Jul–31 Agu 2026 (usulan) |
+
+Dibuat oleh `retrieval/corpus.py` (tanpa `cluster_id`/`split`, ke `data/interim/refuted_claims/claims_raw.jsonl`) lalu `evaluation/splits.py`. File pendamping di `data/interim/refuted_claims/`: `near_duplicate_pairs.csv` (semua pasangan ≥ ambang) dan `near_duplicate_review.csv` (50 pasangan ≥ ambang + 20 di bawah ambang, kolom `is_duplicate` diisi manual).
 
 ## NER — `data/processed/ner/{nergrit,nerp_lower,seed}_{train,valid,test}.conll`
 
@@ -61,6 +65,10 @@ depan	I-TIME
 | `label` | str | `supports` / `refutes` / `unrelated` |
 | `source` | str | `indonli`, `brin_fact`, `brin_paraphrase`, `team` |
 | `annotators` | list[str] | Hanya untuk anotasi tim |
+| `has_negation` | bool | Hypothesis memuat tidak/bukan/belum/tak/nggak/gak/enggak/tanpa; untuk kontrol bias negasi |
+| `hoax_type` | str \| null | Hanya `brin_fact`: kolom `Classification` BRIN |
+
+Template anotasi tim (kolom tambahan `premise_claim_id`, `status`, `instruction`): lihat `data/annotations/claim_verification/README.md`.
 
 ## Kueri retrieval — `data/annotations/claim_verification/retrieval_queries.jsonl`
 
@@ -101,7 +109,8 @@ Dibuat dan diolah dengan `python -m indonesian_hoax_checker.ner.annotation` (lih
 
 | File | Isi |
 |---|---|
-| `manifest.json` | Nama file, jumlah baris, SHA-256, tanggal pembekuan, versi Kaggle |
+| `manifest.json` | Nama file, jumlah baris, SHA-256, tanggal pembekuan, versi Kaggle, statistik klaster dan split |
+| `refuted_claims_split.csv` | `claim_id, cluster_id, split, published_at` untuk seluruh basis klaim (dilacak Git, supaya split bisa direkonstruksi tanpa data mentah) |
 
 ## Keluaran eksperimen
 

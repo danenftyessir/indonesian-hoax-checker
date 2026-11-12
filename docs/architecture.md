@@ -39,10 +39,11 @@ Didefinisikan di `src/indonesian_hoax_checker/common/schemas.py`:
 | `Entity` | `text`, `label` (PER/ORG/LOC/TIME/CLAIM), `start`, `end` (posisi karakter) |
 | `NERResult` | `entities`, `core_claim` (span CLAIM pertama) |
 | `ClassificationResult` | `label` (`hoax`/`valid`), `confidence` 0–1 |
-| `RetrievalResult` | `matched_claim`, `clarification`, `similarity_score`; tahap retrieval mengembalikan list top-k |
-| `StanceResult` | `label` (`supports`/`refutes`/`unrelated`), `confidence` |
+| `RetrievalCandidate` | `claim_id`, `claim`, `clarification`, `url`, `published_at`, `score` |
+| `RetrievalResult` | `candidates` (top-k terurut, boleh kosong), `scorer` (`bm25`/`embedding`), plus `matched_claim`, `clarification`, `similarity_score` = kandidat pertama atau None |
+| `StanceResult` | `label` (`supports`/`refutes`/`unrelated`), `confidence`, `claim_id` klaim terbantah yang dinilai |
 
-Tahap retrieval mengembalikan `list[RetrievalResult]` (top-k, skor tertinggi dulu), dan `core_claim` = span CLAIM pertama ([0011](decisions/0011-keputusan-teknis-tambahan.md)).
+Ditinjau Danendra 11 Nov 2026 (disahkan di rapat 13 Nov): retrieval mengembalikan top-k lewat `candidates`, tiga field lama dipertahankan agar laporan tidak berubah; nama field entitas tetap `label`; `core_claim` tetap satu string (NER memilih CLAIM pertama untuk input multi-kalimat, sisanya ada di `entities`), retrieval memakai `core_claim` bila tidak kosong dan teks input bila kosong.
 
 ## Modul
 
