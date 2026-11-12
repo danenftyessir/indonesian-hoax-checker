@@ -1,0 +1,39 @@
+{
+  "frozen_at": "2026-11-12T11:24:01+00:00",
+  "files": [
+    {
+      "file": "data/processed/refuted_claims/claims.jsonl",
+      "lines": 3048,
+      "sha256": "61c9cc79e69aed7b3443f8d5e13a6e32e3d3f9b1ce57ae535f309b8cac59d753",
+      "bytes": 5108036
+    },
+    {
+      "file": "data/splits/refuted_claims_split.csv",
+      "lines": 3049,
+      "sha256": "5f9d6e053ed3727325c75e42eea1e3068be9018a700ef04d527c48b16eba09cb",
+      "bytes": 129018
+    }
+  ],
+  "n_claims": 3048,
+  "threshold": 0.8,
+  "n_pairs_above_threshold": 63,
+  "n_clusters": 2989,
+  "n_clusters_multi": 48,
+  "n_claims_in_multi_clusters": 107,
+  "largest_cluster_sizes": [
+    4,
+    4,
+    4,
+    3,
+    3
+  ],
+  "split_counts": {
+    "train": 2398,
+    "dev": 299,
+    "test": 351
+  },
+  "test_start": "2026-09-01",
+  "dev_start": "2026-07-01",
+  "kaggle_version": "396",
+  "source_claims": "data/interim/refuted_claims/claims_raw.jsonl"
+}
