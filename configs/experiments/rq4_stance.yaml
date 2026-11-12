@@ -1,0 +1,18 @@
+# RQ4: Apakah stance detection memisahkan hoaks yang diulang dari koreksinya?
+# Protokol: docs/experiment_protocol.md task 3b. Jalankan tiap run dengan stance/predict.py.
+test_sets:
+  indonli_test_expert: data/processed/stance/indonli_test_expert.jsonl
+  indonli_val: data/processed/stance/indonli_val.jsonl
+  team_pairs: data/processed/stance/team_test.jsonl      # 300 pasangan tim (0007)
+metrics: [macro_f1, per_class_f1, direction_swap_rate, with_negation, without_negation]
+runs:
+  - name: rq4_simthr
+    model: similarity                 # baseline: ambang TF-IDF, tidak bisa menghasilkan refutes
+    fit_threshold_on: data/processed/stance/team_dev.jsonl
+  - name: rq4_mdeberta_zeroshot
+    model: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7
+  - name: rq4_indobert_indonli
+    model: artifacts/checkpoints/stance_indonli      # tahap 1 saja
+  - name: rq4_indobert_final
+    model: artifacts/checkpoints/stance_final        # tahap 1 + 2
+seeds: [13, 42, 2026]
