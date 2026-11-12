@@ -79,8 +79,12 @@ def main(argv: list[str] | None = None) -> int:
         return enc
 
     cols = ["premise", "hypothesis", "label"]
-    ds_train = Dataset.from_list([{k: r[k] for k in cols} for r in train_rows]).map(encode, batched=True)
-    ds_dev = Dataset.from_list([{k: r[k] for k in cols} for r in dev_rows]).map(encode, batched=True)
+    # remove_columns: kolom `label` (string) harus dibuang. DataCollatorWithPadding mengganti nama
+    # `label` -> `labels`, sehingga string itu menimpa `labels` integer dan gagal dijadikan tensor.
+    ds_train = Dataset.from_list([{k: r[k] for k in cols} for r in train_rows]).map(
+        encode, batched=True, remove_columns=cols)
+    ds_dev = Dataset.from_list([{k: r[k] for k in cols} for r in dev_rows]).map(
+        encode, batched=True, remove_columns=cols)
 
     model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
