@@ -17,4 +17,6 @@ pip install -e . -r requirements/dev.txt
 pytest
 ```
 
+Model training runs in Colab notebooks under `notebooks/` (NER: `notebooks/02_ner/train_ner_colab.ipynb`); the notebooks only call code in `src/`.
+
 See `docs/` for architecture, dataset documentation, and experiment protocol.

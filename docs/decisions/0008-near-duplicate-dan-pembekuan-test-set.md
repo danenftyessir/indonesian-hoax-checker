@@ -1,6 +1,6 @@
 # 0008 — Near-duplicate dan pembekuan test set
 
-**Status:** Usulan
+**Status:** Final
 
 ## Konteks
 Hoaks berulang (tautan bansos, BLT, lowongan kerja) sangat sering di Komdigi, jadi split waktu saja tidak mencegah kebocoran.

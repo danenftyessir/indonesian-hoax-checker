@@ -1,6 +1,6 @@
 # Data Dictionary
 
-Format file olahan di `data/processed/` dan anotasi di `data/annotations/`. Nama kolom ini **usulan**; ubah di sini dulu sebelum mengubah kode. Semua file teks UTF-8.
+Format file olahan di `data/processed/` dan anotasi di `data/annotations/`. Format ini menjadi acuan kode; bila perlu diubah, ubah di sini dulu. Semua file teks UTF-8.
 
 ## Basis klaim terbantah — `data/processed/refuted_claims/claims.jsonl`
 
@@ -23,6 +23,8 @@ Satu baris per artikel Komdigi.
 Dibuat oleh `retrieval/corpus.py` (tanpa `cluster_id`/`split`, ke `data/interim/refuted_claims/claims_raw.jsonl`) lalu `evaluation/splits.py`. File pendamping di `data/interim/refuted_claims/`: `near_duplicate_pairs.csv` (semua pasangan ≥ ambang) dan `near_duplicate_review.csv` (50 pasangan ≥ ambang + 20 di bawah ambang, kolom `is_duplicate` diisi manual).
 
 ## NER — `data/processed/ner/{nergrit,nerp_lower,seed}_{train,valid,test}.conll`
+
+File `*_test_informal.conll` adalah versi informal sintetis dari test (huruf kecil, singkatan, typo, "!!!"), dibuat `ner.prepare` dengan seed tetap untuk RQ1.
 
 Format CoNLL: satu token per baris, `token<TAB>label`, kalimat dipisah baris kosong. Label IOB2 dengan tipe PER, ORG, LOC, TIME, CLAIM ([label_mapping.md](label_mapping.md)).
 
@@ -77,9 +79,31 @@ Template anotasi tim (kolom tambahan `premise_claim_id`, `status`, `instruction`
 | `type` | str | `original`, `paraphrase`, `no_match` |
 | `gold_claim_ids` | list[str] | Kosong untuk `no_match` |
 
-## Anotasi NER seed — `data/annotations/ner/`
+## Anotasi NER seed — `data/annotations/ner/` (dilacak Git)
 
-Hasil ekspor alat anotasi, satu file per annotator, lalu file gabungan `seed_adjudicated.conll` setelah perbedaan diselesaikan. Format sama dengan file CoNLL NER di atas.
+Dibuat dan diolah dengan `python -m indonesian_hoax_checker.ner.annotation` (lihat [annotation_guidelines.md](annotation_guidelines.md)).
+
+**`seed_sentences.jsonl`** — kalimat yang akan dianotasi, satu baris per kalimat:
+
+| Field | Tipe | Keterangan |
+|---|---|---|
+| `id` | str | ID unik, mis. `komdigi-1234-1` |
+| `text` | str | Satu kalimat |
+| `title` | str | Judul artikel asal (Komdigi tanpa "[HOAKS]"); petunjuk pelabel CLAIM otomatis |
+| `source` | str | `komdigi` atau `mafindo` |
+| `origin_id` | str | ID artikel asal |
+| `published_at` | str \| null | Tanggal artikel (ISO 8601); Komdigi sejak 1 Sep 2026 hanya boleh masuk test |
+| `split` | str | `train` (label otomatis saja), `dev` atau `test` (dikoreksi manual), `informal_test` |
+
+**`informal_sentences.jsonl`** — 30 kalimat uji informal buatan tim, format sama dengan `seed_sentences.jsonl` dengan `source: informal`. Tidak masuk train/dev/test seed; menjadi `seed_informal_test.conll`.
+
+**`seed_auto.jsonl`** — semua kalimat `seed_sentences.jsonl` ditambah `tokens` dan `tags` (IOB2) hasil label otomatis.
+
+**`label_studio_tasks.json`** — file impor Label Studio untuk kalimat dev/test; label otomatis sebagai prediksi, salinannya di `data.auto_tags` untuk laporan koreksi.
+
+**`export_*.json`** — ekspor JSON dari Label Studio.
+
+**`seed_adjudicated.jsonl`** — versi final per kalimat: field `seed_sentences.jsonl` ditambah `tokens`, `tags`, dan `quality` (`human` = dikoreksi, `silver` = label otomatis). Dari file ini dibuat `data/processed/ner/seed_{train,dev,test}.conll`.
 
 ## Split — `data/splits/`
 

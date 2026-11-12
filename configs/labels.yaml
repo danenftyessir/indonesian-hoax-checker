@@ -1,5 +1,5 @@
 # Label definitions shared across components. Rationale and examples: docs/label_mapping.md.
-# Status: proposed (docs/decisions/), pending team approval on 2026-11-13.
+# Status: final (docs/decisions/).
 
 classification:
   # Code and config use hoax/valid; the report writes "hoaks"/"valid" (never "fakta").

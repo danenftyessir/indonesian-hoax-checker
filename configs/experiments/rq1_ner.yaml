@@ -1,0 +1,16 @@
+# RQ1: apakah normalisasi dan augmentasi teks informal memperbaiki ekstraksi entitas?
+# Semua varian dinilai pada NERGrit test (formal) dan nergrit_test_informal (informal sintetis),
+# 3 seed per varian. Dijalankan lewat notebooks/02_ner/rq1_ner_colab.ipynb.
+# Setelah seed set CLAIM/TIME ada, RQ1 diulang di atas model tahap 2.
+seeds: [13, 42, 2026]
+variants:
+  - configs/experiments/rq1/bilstm_crf_base.yaml
+  - configs/experiments/rq1/bilstm_crf_norm.yaml
+  - configs/experiments/rq1/bilstm_crf_aug.yaml
+  - configs/experiments/rq1/bilstm_crf_norm_aug.yaml
+  - configs/experiments/rq1/bilstm_crf_lower_nerp.yaml
+  - configs/experiments/rq1/indobert_base.yaml
+  - configs/experiments/rq1/indobert_norm.yaml
+  - configs/experiments/rq1/indobert_aug.yaml
+  - configs/experiments/rq1/indobert_norm_aug.yaml
+  - configs/experiments/rq1/indobert_lower_nerp.yaml

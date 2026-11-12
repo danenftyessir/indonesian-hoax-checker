@@ -1,6 +1,6 @@
 # 0010 — Klasifikasi dan retrieval dijalankan paralel
 
-**Status:** Usulan (keputusan tambahan, tidak ada di daftar lama)
+**Status:** Final (keputusan tambahan, tidak ada di daftar lama)
 
 ## Konteks
 Di laporan desain, klasifikasi berjalan sebelum pencarian bukti dan skornya menentukan seberapa dalam pencarian dilakukan.

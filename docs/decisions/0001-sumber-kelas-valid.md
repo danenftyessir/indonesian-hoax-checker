@@ -1,6 +1,6 @@
 # 0001 — Sumber kelas valid dan data latih klasifikasi
 
-**Status:** Usulan
+**Status:** Final
 
 ## Konteks
 Mendeley (Rahutomo dkk.) hanya 600 berita tahun 2017 (228 hoaks, 372 valid), terlalu kecil untuk fine-tuning IndoBERT. Semua dataset hoaks Indonesia yang besar memuat artikel cek fakta sebagai kelas hoaks, bukan teks hoaks aslinya, sehingga classifier bisa belajar membedakan sumber atau gaya, bukan kebenaran.

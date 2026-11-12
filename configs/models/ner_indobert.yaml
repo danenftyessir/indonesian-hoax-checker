@@ -1,4 +1,18 @@
-# NER, strong model (task 1). Hyperparameters to be filled in phase 3.
-# p1, not p2: IndoNLU reports higher NERGrit F1 for p1 (docs/decisions/0004-skema-ner-dan-nerp.md).
+# Model kuat NER (task 1): fine-tune IndoBERT di NERGrit (cased).
+# p1, bukan p2: IndoNLU melaporkan F1 NERGrit p1 lebih tinggi (docs/decisions/0004-skema-ner-dan-nerp.md).
+name: ner_indobert
+model: indobert
 model_name: indobenchmark/indobert-base-p1
-labels_from: configs/labels.yaml#ner
+data:
+  train: data/processed/ner/nergrit_train.conll
+  dev: data/processed/ner/nergrit_dev.conll
+  test: data/processed/ner/nergrit_test.conll
+lowercase: false
+max_length: 256   # kalimat terpanjang NERGrit = 224 subword
+lr: 0.00005
+weight_decay: 0.01
+warmup_ratio: 0.1
+batch_size: 16
+epochs: 10
+patience: 3
+device: auto

@@ -1,0 +1,6 @@
+# RQ1 bilstm_crf: Normalisasi teks informal di semua split
+base: configs/models/ner_bilstm_crf.yaml
+name: rq1_bilstm_crf_norm
+normalize: true
+extra_eval:
+  nergrit_test_informal: data/processed/ner/nergrit_test_informal.conll

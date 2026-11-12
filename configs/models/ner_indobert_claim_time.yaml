@@ -1,0 +1,22 @@
+# Tahap 2 IndoBERT: lanjut dari model NERGrit, dilatih di seed set (PER, ORG, LOC, TIME, CLAIM).
+# Jalankan setelah ner_indobert.yaml selesai dan seed_*.conll dibuat (ner.annotation split).
+name: ner_indobert_claim_time
+model: indobert
+model_name: indobenchmark/indobert-base-p1
+init_from: artifacts/checkpoints/ner/ner_indobert_seed{seed}
+data:
+  train: data/processed/ner/seed_train.conll
+  dev: data/processed/ner/seed_dev.conll
+  test: data/processed/ner/seed_test.conll
+extra_eval:
+  nergrit_test: data/processed/ner/nergrit_test.conll
+  seed_informal_test: data/processed/ner/seed_informal_test.conll  # 30 kalimat informal buatan tim, bila ada
+lowercase: false
+max_length: 256
+lr: 0.00003
+weight_decay: 0.01
+warmup_ratio: 0.1
+batch_size: 16
+epochs: 20
+patience: 5
+device: auto

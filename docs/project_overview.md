@@ -20,7 +20,7 @@ Sistem ini alat bantu penyaringan awal, **bukan pemutus akhir**:
 | 2. Klasifikasi hoaks | Muhammad Dzaky Atha Fadhilah (18223124) | Teks + entitas | Label `hoax`/`valid` + skor 0–1 |
 | 3. Similarity dan stance | Danendra Shafi Athallah (13523136) | Teks, entitas | Klaim terbantah terdekat, skor kemiripan, stance |
 
-Pembagian tambahan ([0006](decisions/0006-pemilik-cli-dan-orchestrator.md)): Dzaky memegang CLI dan orchestrator, Jonathan memimpin anotasi, Danendra meninjau `common/schemas.py`.
+Pembagian tambahan ([0006](decisions/0006-pemilik-cli-dan-orchestrator.md)): Dzaky memegang CLI dan orchestrator, Jonathan memimpin anotasi, Danendra memegang retrieval dan stance.
 
 ## Contoh
 

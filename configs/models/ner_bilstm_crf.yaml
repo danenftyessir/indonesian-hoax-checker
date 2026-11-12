@@ -1,0 +1,19 @@
+# Baseline NER (task 1): BiLSTM-CRF, dilatih dari nol di NERGrit (cased).
+name: ner_bilstm_crf
+model: bilstm_crf
+data:
+  train: data/processed/ner/nergrit_train.conll
+  dev: data/processed/ner/nergrit_dev.conll
+  test: data/processed/ner/nergrit_test.conll
+lowercase: false
+model_args:
+  word_dim: 100
+  char_dim: 30
+  char_filters: 50
+  hidden: 200
+  dropout: 0.5
+lr: 0.001
+batch_size: 32
+epochs: 50
+patience: 8   # berhenti bila F1 dev tidak naik selama 8 epoch
+device: auto   # di Colab = GPU; jangan dijalankan di MPS Mac (crash di Conv1d karakter)

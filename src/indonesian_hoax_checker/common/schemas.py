@@ -27,6 +27,7 @@ class Entity(TypedDict):
     end: int
 
 
+# core_claim = span CLAIM pertama di input, string kosong bila tidak ada
 class NERResult(TypedDict):
     entities: list[Entity]
     core_claim: str  # "" bila tidak ada span CLAIM
