@@ -92,6 +92,7 @@ def build_retrieval_queries(
     valid_claims: list[dict[str, Any]] | None,
     n_per_type: int = 100,
     seed: int = 13,
+    prefer_short: bool = False,
 ) -> list[dict[str, Any]]:
     rng = random.Random(seed)
     clusters = _by_cluster(claims)
@@ -113,11 +114,17 @@ def build_retrieval_queries(
             "instruction": "Tulis ulang source_claim dengan kata berbeda (gaya pesan berantai boleh).",
         })
     valid = [v for v in (valid_claims or []) if v.get("label", "valid") == "valid"]
-    rng.shuffle(valid)
+    if prefer_short:
+        # Kueri no_match jauh lebih panjang dari judul Komdigi (median 19 vs 8 kata); skor BM25 naik
+        # dengan panjang kueri, jadi ambil yang terpendek supaya ambang tolak tidak belajar panjang.
+        valid.sort(key=lambda v: (v.get("n_words") or len(v["text"].split()), str(v.get("id", ""))))
+    else:
+        rng.shuffle(valid)
     for i in range(n_per_type):
         v = valid[i] if i < len(valid) else None
         rows.append({
-            "query_id": f"q-nomatch-{i:03d}", "query": v["text"] if v else "", "type": "no_match",
+            "query_id": f"q-nomatch-{i:03d}", "query": " ".join(v["text"].split()) if v else "",
+            "type": "no_match",
             "gold_claim_ids": [], "source_id": v.get("id") if v else None,
             "status": "auto" if v else "draft",
             "instruction": "Klaim/berita yang TIDAK ada di basis Komdigi; cek manual dengan BM25 top-10.",
@@ -134,6 +141,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--n-per-label", type=int, default=100)
     p.add_argument("--seed", type=int, default=13)
     p.add_argument("--overwrite", action="store_true", help="timpa file yang sudah ada (anotasi hilang!)")
+    p.add_argument("--prefer-short-no-match", action="store_true",
+                   help="ambil kueri no_match terpendek (n_words) alih-alih acak; mengurangi confound panjang")
     args = p.parse_args(argv)
 
     claims = [c for c in load_claims(args.claims) if c.get("split") == args.split]
@@ -141,7 +150,8 @@ def main(argv: list[str] | None = None) -> int:
     out = Path(args.out_dir)
     targets = {
         out / "stance_pairs.jsonl": lambda: build_stance_pairs(claims, args.n_per_label, args.seed),
-        out / "retrieval_queries.jsonl": lambda: build_retrieval_queries(claims, valid, args.n_per_label, args.seed),
+        out / "retrieval_queries.jsonl": lambda: build_retrieval_queries(
+            claims, valid, args.n_per_label, args.seed, args.prefer_short_no_match),
     }
     written = {}
     for path, fn in targets.items():

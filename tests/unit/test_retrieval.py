@@ -186,3 +186,33 @@ def test_recall_by_claim_age_buckets():
     r = M.recall_by_claim_age(run, gold, dates, "2026-11-18", k=10)
     assert r["<3m"]["n"] == 1 and r["<3m"]["success@10"] == 1.0
     assert r[">=12m"]["n"] == 1 and r[">=12m"]["success@10"] == 0.0
+
+
+def test_annotate_entities_skips_empty_text_and_batches():
+    from indonesian_hoax_checker.retrieval import annotate_entities as A
+
+    calls = []
+
+    def fake_predict(texts):
+        calls.append(list(texts))
+        return [{"entities": [{"text": t.split()[0], "label": "PER", "start": 0, "end": len(t.split()[0])}],
+                 "core_claim": t} for t in texts]
+
+    rows = [{"query": "Jokowi ke Bali"}, {"query": ""}, {"query": "  "}, {"query": "Prabowo teken SK"}]
+    A.annotate_rows(rows, "query", fake_predict, batch_size=1)
+    assert calls == [["Jokowi ke Bali"], ["Prabowo teken SK"]]  # teks kosong tidak dikirim ke model
+    assert rows[0]["entities"][0]["text"] == "Jokowi" and rows[1]["entities"] == [] and rows[2]["core_claim"] == ""
+    s = A.summarize(rows)
+    assert s["n"] == 4 and s["with_per_org_loc"] == 2 and s["label_counts"] == {"PER": 2}
+
+
+def test_no_match_prefer_short_and_whitespace():
+    from indonesian_hoax_checker.data import claim_verification_templates as T
+
+    claims = [{"claim_id": str(i), "claim": f"klaim {i}", "cluster_id": i, "split": "test"} for i in range(4)]
+    valid = [{"id": "a", "text": "panjang  sekali kalimat ini ya", "n_words": 5},
+             {"id": "b", "text": "pendek saja", "n_words": 2}]
+    rows = T.build_retrieval_queries(claims, valid, n_per_type=2, prefer_short=True)
+    nm = [r for r in rows if r["type"] == "no_match"]
+    assert [r["source_id"] for r in nm] == ["b", "a"]
+    assert nm[1]["query"] == "panjang sekali kalimat ini ya"  # spasi ganda dirapikan, sumber tidak diubah

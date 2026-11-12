@@ -7,7 +7,15 @@ File di folder ini dilacak Git. Jangan menjalankan generator dengan `--overwrite
 ## Cara membuat template
 
 ```
-python -m indonesian_hoax_checker.data.claim_verification_templates data/processed/refuted_claims/claims.jsonl --valid-claims data/short_claims.jsonl
+python -m indonesian_hoax_checker.data.claim_verification_templates data/processed/refuted_claims/claims.jsonl --valid-claims data/no_match_queries.jsonl --prefer-short-no-match
+```
+
+Kueri `no_match` saat ini (12 Nov 2026) = 100 terpendek dari 144 kalimat pembuka berita Mafindo kiriman Dzaky (`data/no_match_queries.jsonl`, `source_id` = `sc150..sc299`). `--prefer-short-no-match` dipakai karena kalimat itu jauh lebih panjang dari judul Komdigi (median 17 vs 8 kata) dan skor BM25 naik dengan panjang kueri. Pemeriksaan BM25 top-1: maksimum 29,8, sedangkan judul asli terhadap dirinya sendiri minimum 16,6; lima skor tertinggi sudah dibaca dan hanya kebetulan leksikal (nama tokoh/lembaga), bukan padanan.
+
+Entitas kueri dan basis klaim (ablasi filter RQ3) diisi oleh skrip, dari checkpoint NER tim (keputusan 0005):
+
+```
+python -m indonesian_hoax_checker.retrieval.annotate_entities --checkpoint artifacts/checkpoints/ner/ner_indobert_seed42 --queries data/annotations/claim_verification/retrieval_queries.jsonl
 ```
 
 Semua premise dan gold diambil dari split `test` (artikel Komdigi sejak 1 Sep 2026), satu klaim per klaster near-duplicate. Untuk set tuning jalankan lagi dengan `--split dev --out-dir data/annotations/claim_verification/dev`.
