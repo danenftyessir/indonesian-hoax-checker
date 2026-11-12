@@ -109,6 +109,26 @@ Cara membaca:
 - Nama domain saja sudah melampaui tebakan mayoritas (0,56–0,58): sebagian sinyal adalah sumber, bukan isi.
 - CI bootstrap menyatakan ketidakpastian sampel (600 item) dan dihitung dari satu ulangan; sd menyatakan variasi split. Keduanya dilaporkan terpisah.
 
+**Uji cross-dataset Mafindo & Mendeley** (`classification/cross_dataset.py`, dijalankan di Colab, sklearn 1.6.1; TF-IDF kata min_df=3 + Logistic Regression seimbang, hanya `content`, threshold 0,5; satu kali jalan, CI bootstrap atas item uji):
+
+| Uji | Macro-F1 [CI 95%] | AUROC | Hoaks P / R | Hoaks terprediksi / sebenarnya |
+|---|---|---|---|---|
+| Referensi in-domain: Mafindo → Mafindo test (5.911) | 0,984 [0,981; 0,987] | 0,997 | 0,98 / 0,99 | 0,49 / 0,49 |
+| A. Mafindo → Mendeley 600 | 0,569 [0,529; 0,612] | 0,597 | 0,50 / 0,36 | 0,28 / 0,38 |
+| B. A, irisan tanpa penanda bantahan (n=280) | 0,493 [0,435; 0,549] | 0,493 | 0,61 / 0,41 | 0,40 / 0,59 |
+| B. A, irisan dengan penanda bantahan (n=320) | 0,551 [0,496; 0,610] | 0,569 | 0,29 / 0,25 | 0,17 / 0,20 |
+| D. A, artefak sumber dibuang di kedua sisi | 0,572 [0,533; 0,614] | 0,596 | 0,50 / 0,38 | 0,29 / 0,38 |
+| C. Mendeley 600 → Mafindo test | 0,464 [0,452; 0,475] | 0,561 | 0,50 / 0,86 | 0,83 / 0,49 |
+
+Cara membaca:
+- Skor in-domain 0,984 turun ke 0,569 saat model Mafindo diuji pada Mendeley; AUROC 0,597 hanya sedikit di atas tebakan acak. Skor in-domain mengukur pembedaan sumber/gaya, bukan deteksi hoaks.
+- Membuang artefak sumber (D) hampir tidak mengubah hasil (0,572 vs 0,569), konsisten dengan temuan in-domain.
+- Dugaan bentrok semantik label (artikel bantahan di Mendeley berlabel valid) **tidak terbukti menjadi penyebab utama**: pada irisan tanpa penanda bantahan AUROC justru 0,493 (CI 0,423–0,560, mencakup 0,5). Penanda bantahan adalah heuristik kata yang kasar dan irisannya kecil, jadi ini bukan bukti bahwa bentrok tidak ada.
+- Arah sebaliknya (C) gagal: dilatih pada 600 artikel, model menebak hoaks untuk 83% artikel Mafindo.
+- Per topik (n≈50, bising), proporsi hoaks terprediksi berkisar 0,00–0,74 sementara proporsi sebenarnya 0,20–0,54. Ini mengarah ke prediksi yang mengikuti topik/kosakata, tetapi belum diuji lebih lanjut.
+- Pembanding dalam Mendeley sendiri: TF-IDF + LR dengan leave-one-topic-out mencapai 0,636, di atas 0,569 dari model Mafindo.
+- Batas: satu kali jalan, ambang tetap 0,5, hanya `content`. Mendeley (artikel 2014–2018 dari banyak situs) dan Mafindo (2024, kelas hoaks berisi artikel cek fakta) berbeda domain dan waktu.
+
 ### IndoNLI — stance (pra-latih)
 
 - **URL:** https://raw.githubusercontent.com/ir-nlp-csui/indonli/main/data/indonli/train.jsonl
