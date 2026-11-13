@@ -49,3 +49,5 @@ Thumbs.db
 
 # Unduhan mentah yang diletakkan di root (mis. archive.zip dari Kaggle)
 *.zip
+
+results/
