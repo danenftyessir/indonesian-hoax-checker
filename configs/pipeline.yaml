@@ -1,7 +1,9 @@
 # Pengaturan pipeline (dibaca pipeline/stages.py dan orchestrator).
 
 ner:
-  # Checkpoint dari Drive hasil_training (ner_results.zip), diekstrak ke repo.
-  # null = mode stub: entitas kosong, supaya task 2 dan 3 bisa jalan sebelum model tersedia.
-  checkpoint: artifacts/checkpoints/ner/ner_indobert_seed42
+  # Dua model IndoBERT-p1 seed 42 dipakai bersama (docs/decisions/0012-layer-entitas-dan-claim-terpisah.md).
+  # Checkpoint dari Drive hasil_training (ner_checkpoints_seed42.zip), diekstrak ke artifacts/checkpoints/ner/.
+  # checkpoint = null -> mode stub: entitas kosong, supaya task 2 dan 3 bisa jalan sebelum model tersedia.
+  checkpoint: artifacts/checkpoints/ner/ner_indobert_entity_seed42   # PER, ORG, LOC, TIME
+  claim_checkpoint: artifacts/checkpoints/ner/ner_indobert_claim_seed42   # span CLAIM; null = CLAIM tidak diprediksi
   device: auto

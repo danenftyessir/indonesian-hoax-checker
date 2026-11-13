@@ -43,7 +43,14 @@ NOT_PREDICATE = {
     "menurut", "mengenai", "melalui", "meski", "meskipun", "merah", "media", "menteri", "menko", "menkes",
     "menkeu", "mendagri", "menag", "mensos", "mendikdasmen", "menpan", "metro", "merek", "medan", "mei",
     "terdapat", "berita", "beserta", "berikut", "berikutnya", "beragam", "terbesar", "tertinggi",
+    "terpilih", "terkenal", "terduga", "terlapor", "terdakwa", "tersangka", "terlebih", "tertua", "termuda",
+    "meter", "mesin", "menit", "mereka", "mengingat", "mengenal", "menara", "mewah", "mega", "medsos",
 }
+# Kata penanda yang ikut dibuang dari awal klaim: "mengeklaim informasi bahwa X", "berisi klaim bahwa X"
+LEAD_NOUNS = {"informasi", "klaim", "narasi", "pesan", "kabar", "isu", "adanya", "ada"}
+LEAD_LINKS = {"bahwa", "jika", "mengenai", "tentang", "terkait", "soal"}
+# Awal kalimat klarifikasi yang ikut terbawa karena tanda baca hilang: klaim berhenti sebelum kata ini
+CLARIFICATION_STARTS = {"faktanya", "padahal", "namun", "berdasarkan"}
 PREDICATE_PREFIX = re.compile(r"^(memper|diper|meng|meny|mem|men|me|ber|di|ter)[a-z]{3,}$")
 # Ekor atribusi berita: ", kata X", ", ujar X" tidak masuk klaim
 ATTRIBUTION = {"kata", "ujar", "ungkap", "jelas", "tutur", "sebut", "imbuh", "tegas", "terang", "katanya"}
@@ -159,14 +166,34 @@ def is_predicate(word: str) -> bool:
     return w in AUX or (w.isalpha() and len(w) >= 5 and bool(PREDICATE_PREFIX.match(w)) and w not in NOT_PREDICATE)
 
 
+# Lewati kata pengantar ("informasi bahwa", "klaim jika", "adanya") di awal klaim
+def _skip_lead(lower, i):
+    while i < len(lower) and lower[i] in SKIP_AFTER_MARKER:
+        i += 1
+    if i + 1 < len(lower) and lower[i] in LEAD_NOUNS and lower[i + 1] in LEAD_LINKS:
+        i += 2
+    elif i < len(lower) and lower[i] == "adanya":
+        i += 1
+    return i
+
+
+# Perluas end bila ")" sesudahnya menutup "(" yang terbuka di dalam span
+def _balance(tokens, start, end):
+    if end < len(tokens) and tokens[start:end].count("(") > tokens[start:end].count(")") and tokens[end] == ")":
+        end += 1
+    return end
+
+
 # Rapikan batas: tanda baca di depan, kurung yang belum ditutup, tanda baca dan TIME di belakang
 def _finish(tokens, tags, lower, start, end):
     while start < end and lower[start] in {",", ":", "“", '"', "'", "-"}:
         start += 1
     if start >= end or lower[start] in BAD_START:
         return None
-    if end < len(tokens) and tokens[start:end].count("(") > tokens[start:end].count(")") and tokens[end] == ")":
-        end += 1
+    cut = next((k for k in range(start + 1, end) if lower[k] in CLARIFICATION_STARTS), None)
+    if cut is not None:
+        end = cut
+    end = _balance(tokens, start, end)
     while end > start and tokens[end - 1] in TRAILING:
         if tokens[end - 1] == ")" and tokens[start:end - 1].count("(") > tokens[start:end - 1].count(")"):
             break
@@ -177,6 +204,8 @@ def _finish(tokens, tags, lower, start, end):
             i -= 1
         end = i
         while end > start and (tokens[end - 1] in TRAILING or lower[end - 1] in TIME_PREPOSITIONS):
+            if tokens[end - 1] == ")" and tokens[start:end - 1].count("(") > tokens[start:end - 1].count(")"):
+                break
             end -= 1
     if not MIN_TOKENS <= end - start <= MAX_TOKENS:
         return None
@@ -202,12 +231,9 @@ def _marker_start(lower):
     if marker is None:
         bahwa = next((i for i, t in enumerate(lower) if t == "bahwa"), None)
         if bahwa is not None:
-            return bahwa + 1, "strong"
+            return _skip_lead(lower, bahwa + 1), "strong"
         return None, None
-    start = marker + 1
-    while start < len(lower) and lower[start] in SKIP_AFTER_MARKER:
-        start += 1
-    return start, kind
+    return _skip_lead(lower, marker + 1), kind
 
 
 def _from_title(tokens, tags, lower, title, marker_start):
@@ -219,8 +245,8 @@ def _from_title(tokens, tags, lower, title, marker_start):
     # Kata predikat di antara penanda dan kecocokan pertama ikut masuk ("akan memberikan" ~ judul "Bakal Berikan")
     if marker_start is not None and marker_start < start <= marker_start + 8:
         start = marker_start
-    # Subjek di awal (sering ikut cocok dengan judul) dilewati
-    start = _skip_subject(tokens, tags, lower, start)[0]
+    # Subjek di awal (sering ikut cocok dengan judul) dan kata pengantar dilewati
+    start = _skip_subject(tokens, tags, lower, _skip_lead(lower, start))[0]
     # Kata bantu predikat tepat sebelum awal ikut masuk
     while start > lo and lower[start - 1] in AUX:
         start -= 1
@@ -259,7 +285,9 @@ def _from_predicate(tokens, tags, lower):
             continue
         if i > 0 and lower[i - 1] == "yang":
             continue  # anak kalimat "yang ...", bukan predikat utama
-        if i > 12:
+        if i > 0 and lower[i - 1].isdigit():
+            continue  # "20 meter", "3 mesin": satuan, bukan predikat
+        if i > 24:
             return None  # subjek terlalu panjang, kemungkinan salah tebak
         # Berhenti di koma pertama (sesudah minimal 3 token): sisa kalimat berita biasanya keterangan
         # tempat/waktu/atribusi, bukan inti klaim

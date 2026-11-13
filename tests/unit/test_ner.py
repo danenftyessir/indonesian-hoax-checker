@@ -115,3 +115,15 @@ def test_predictor_loads_bilstm_checkpoint(tmp_path):
     results = predictor.predict_batch(["Joko ke Bandung. Halo!", ""])
     assert set(results[0]) == {"entities", "core_claim"}
     assert results[1] == {"entities": [], "core_claim": ""}
+
+
+def test_claim_layers_do_not_overwrite_entities():
+    from indonesian_hoax_checker.ner.predict import only_claim, to_entities, without_claim
+
+    text = "KPK menyebut Prabowo korupsi"
+    tokens = [("KPK", 0, 3), ("menyebut", 4, 12), ("Prabowo", 13, 20), ("korupsi", 21, 28)]
+    entity_tags = ["B-ORG", "O", "B-PER", "B-CLAIM"]
+    claim_tags = ["O", "B-CLAIM", "I-CLAIM", "I-CLAIM"]
+    entities = to_entities(text, tokens, without_claim(entity_tags)) + to_entities(text, tokens, only_claim(claim_tags))
+    assert {(e["text"], e["label"]) for e in entities} == {
+        ("KPK", "ORG"), ("Prabowo", "PER"), ("menyebut Prabowo korupsi", "CLAIM")}
