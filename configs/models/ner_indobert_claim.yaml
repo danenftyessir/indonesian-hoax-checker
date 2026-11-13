@@ -10,6 +10,7 @@ data:
   test: data/processed/ner/seed_claim_test.conll
 extra_eval:
   seed_informal_test: data/processed/ner/seed_claim_informal_test.conll
+  seed_sim_informal_test: data/processed/ner/seed_claim_test_sim_informal.conll   # test seed versi medsos sintetis
 lowercase: false
 max_length: 256
 lr: 0.00003

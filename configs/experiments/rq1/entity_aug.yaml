@@ -1,0 +1,5 @@
+# RQ1 layer entity: Augmentasi: +1 salinan informal dari data latih
+base: configs/models/ner_indobert_entity.yaml
+name: rq1_entity_aug
+augment:
+  copies: 1

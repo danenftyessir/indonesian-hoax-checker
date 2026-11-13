@@ -108,3 +108,14 @@ def test_boosted_normalizes_scores_and_adds_bonus():
     assert boosted(scores, shares, 0.0).tolist() == [1.0, 0.5, 0.0]
     assert boosted(scores, shares, 0.1).tolist() == [1.0, 0.6, 0.0]
     assert boosted(np.zeros(2), np.array([1.0, 0.0]), 0.5).tolist() == [0.5, 0.0]
+
+
+def test_rq1_variants_load_and_reference_stage2_models():
+    import yaml
+
+    plan = yaml.safe_load(open("configs/experiments/rq1_ner.yaml"))
+    assert len(plan["variants"]) == 7
+    for path in plan["variants"]:
+        cfg = load_config(path)
+        assert cfg["name"].startswith("rq1_") and cfg["init_from"].endswith("seed{seed}")
+        assert "seed_sim_informal_test" in cfg["extra_eval"]

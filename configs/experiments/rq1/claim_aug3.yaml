@@ -1,0 +1,5 @@
+# RQ1 layer claim: Augmentasi: +3 salinan informal dari data latih
+base: configs/models/ner_indobert_claim.yaml
+name: rq1_claim_aug3
+augment:
+  copies: 3

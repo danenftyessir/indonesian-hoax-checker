@@ -1,0 +1,4 @@
+# RQ1 layer entity: Normalisasi teks informal di semua split dan saat prediksi
+base: configs/models/ner_indobert_entity.yaml
+name: rq1_entity_norm
+normalize: true
