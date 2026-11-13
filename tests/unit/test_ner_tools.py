@@ -96,3 +96,15 @@ def test_entity_query_follows_pipeline_rule():
     # TIME tidak ikut, entitas yang sudah ada di core_claim tidak diulang
     assert entity_query("teks", res) == "akan memberikan pelatihan militer TNI Bandung"
     assert entity_query("teks asli", {"core_claim": "", "entities": []}) == "teks asli"
+
+
+def test_boosted_normalizes_scores_and_adds_bonus():
+    import numpy as np
+
+    from indonesian_hoax_checker.ner.entity_use import boosted
+
+    scores = np.array([10.0, 5.0, 0.0])
+    shares = np.array([0.0, 1.0, 0.0])
+    assert boosted(scores, shares, 0.0).tolist() == [1.0, 0.5, 0.0]
+    assert boosted(scores, shares, 0.1).tolist() == [1.0, 0.6, 0.0]
+    assert boosted(np.zeros(2), np.array([1.0, 0.0]), 0.5).tolist() == [0.5, 0.0]
