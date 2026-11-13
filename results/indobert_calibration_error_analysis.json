@@ -1,0 +1,495 @@
+{
+  "seeds": [
+    "seed13",
+    "seed2026",
+    "seed42"
+  ],
+  "calibration": {
+    "aggregate": {
+      "raw": {
+        "ece": {
+          "mean": 0.411,
+          "sd": 0.01
+        },
+        "brier": {
+          "mean": 0.415,
+          "sd": 0.008
+        },
+        "macro_f1": {
+          "mean": 0.524,
+          "sd": 0.029
+        },
+        "auroc": {
+          "mean": 0.585,
+          "sd": 0.01
+        },
+        "pred_hoax_rate": {
+          "mean": 0.395,
+          "sd": 0.085
+        }
+      },
+      "temperature_loto": {
+        "ece": {
+          "mean": 0.08,
+          "sd": 0.014
+        },
+        "brier": {
+          "mean": 0.244,
+          "sd": 0.001
+        },
+        "macro_f1": {
+          "mean": 0.524,
+          "sd": 0.029
+        },
+        "auroc": {
+          "mean": 0.537,
+          "sd": 0.018
+        },
+        "pred_hoax_rate": {
+          "mean": 0.395,
+          "sd": 0.085
+        }
+      },
+      "platt_loto": {
+        "ece": {
+          "mean": 0.016,
+          "sd": 0.002
+        },
+        "brier": {
+          "mean": 0.237,
+          "sd": 0.002
+        },
+        "macro_f1": {
+          "mean": 0.381,
+          "sd": 0.0
+        },
+        "auroc": {
+          "mean": 0.515,
+          "sd": 0.03
+        },
+        "pred_hoax_rate": {
+          "mean": 0.0,
+          "sd": 0.0
+        }
+      }
+    },
+    "per_seed": {
+      "seed13": {
+        "raw": {
+          "ece": 0.422,
+          "brier": 0.424,
+          "macro_f1": 0.537,
+          "auroc": 0.59,
+          "pred_hoax_rate": 0.447
+        },
+        "temperature_loto": {
+          "ece": 0.09,
+          "brier": 0.244,
+          "macro_f1": 0.537,
+          "auroc": 0.545,
+          "pred_hoax_rate": 0.447
+        },
+        "platt_loto": {
+          "ece": 0.014,
+          "brier": 0.236,
+          "macro_f1": 0.381,
+          "auroc": 0.53,
+          "pred_hoax_rate": 0.0
+        }
+      },
+      "seed2026": {
+        "raw": {
+          "ece": 0.403,
+          "brier": 0.412,
+          "macro_f1": 0.544,
+          "auroc": 0.591,
+          "pred_hoax_rate": 0.442
+        },
+        "temperature_loto": {
+          "ece": 0.087,
+          "brier": 0.244,
+          "macro_f1": 0.544,
+          "auroc": 0.55,
+          "pred_hoax_rate": 0.442
+        },
+        "platt_loto": {
+          "ece": 0.017,
+          "brier": 0.236,
+          "macro_f1": 0.381,
+          "auroc": 0.534,
+          "pred_hoax_rate": 0.0
+        }
+      },
+      "seed42": {
+        "raw": {
+          "ece": 0.407,
+          "brier": 0.409,
+          "macro_f1": 0.491,
+          "auroc": 0.573,
+          "pred_hoax_rate": 0.297
+        },
+        "temperature_loto": {
+          "ece": 0.064,
+          "brier": 0.243,
+          "macro_f1": 0.491,
+          "auroc": 0.516,
+          "pred_hoax_rate": 0.297
+        },
+        "platt_loto": {
+          "ece": 0.017,
+          "brier": 0.239,
+          "macro_f1": 0.381,
+          "auroc": 0.481,
+          "pred_hoax_rate": 0.0
+        }
+      }
+    },
+    "temperature_by_heldout_topic": {
+      "seed13": {
+        "KW1": 15.475,
+        "KW10": 17.015,
+        "KW11": 15.803,
+        "KW12": 19.485,
+        "KW2": 16.871,
+        "KW3": 16.554,
+        "KW4": 18.238,
+        "KW5": 20.376,
+        "KW6": 15.925,
+        "KW7": 19.779,
+        "KW8": 17.354,
+        "KW9": 26.658
+      },
+      "seed2026": {
+        "KW1": 14.51,
+        "KW10": 15.933,
+        "KW11": 14.273,
+        "KW12": 16.62,
+        "KW2": 15.257,
+        "KW3": 15.225,
+        "KW4": 16.485,
+        "KW5": 18.18,
+        "KW6": 14.886,
+        "KW7": 17.496,
+        "KW8": 16.032,
+        "KW9": 24.348
+      },
+      "seed42": {
+        "KW1": 14.909,
+        "KW10": 16.103,
+        "KW11": 14.657,
+        "KW12": 16.559,
+        "KW2": 15.838,
+        "KW3": 15.351,
+        "KW4": 16.476,
+        "KW5": 18.534,
+        "KW6": 14.423,
+        "KW7": 17.563,
+        "KW8": 16.621,
+        "KW9": 23.957
+      }
+    }
+  },
+  "reliability_raw_ensemble": [
+    {
+      "bin": "0.0-0.1",
+      "n": 308,
+      "mean_pred": 0.004,
+      "frac_hoax": 0.331
+    },
+    {
+      "bin": "0.1-0.2",
+      "n": 6,
+      "mean_pred": 0.139,
+      "frac_hoax": 0.5
+    },
+    {
+      "bin": "0.2-0.3",
+      "n": 8,
+      "mean_pred": 0.254,
+      "frac_hoax": 0.75
+    },
+    {
+      "bin": "0.3-0.4",
+      "n": 20,
+      "mean_pred": 0.333,
+      "frac_hoax": 0.45
+    },
+    {
+      "bin": "0.4-0.5",
+      "n": 11,
+      "mean_pred": 0.464,
+      "frac_hoax": 0.636
+    },
+    {
+      "bin": "0.5-0.6",
+      "n": 14,
+      "mean_pred": 0.558,
+      "frac_hoax": 0.429
+    },
+    {
+      "bin": "0.6-0.7",
+      "n": 38,
+      "mean_pred": 0.651,
+      "frac_hoax": 0.579
+    },
+    {
+      "bin": "0.7-0.8",
+      "n": 18,
+      "mean_pred": 0.741,
+      "frac_hoax": 0.5
+    },
+    {
+      "bin": "0.8-0.9",
+      "n": 29,
+      "mean_pred": 0.86,
+      "frac_hoax": 0.241
+    },
+    {
+      "bin": "0.9-1.0",
+      "n": 148,
+      "mean_pred": 0.976,
+      "frac_hoax": 0.399
+    }
+  ],
+  "confusion_ensemble": {
+    "TP": 103,
+    "FN": 127,
+    "FP": 144,
+    "TN": 226
+  },
+  "shortcut_checks": {
+    "spearman_score_vs_n_words": 0.073,
+    "auroc_n_words_for_hoax": 0.547,
+    "auroc_ensemble_score": 0.58
+  },
+  "error_analysis": {
+    "topic": [
+      {
+        "category": "CTO Traveloka walk out saat Anies pidato",
+        "n": 50,
+        "true_hoax": 21,
+        "pred_hoax": 15,
+        "FN": 15,
+        "FP": 9,
+        "error_rate": 0.48
+      },
+      {
+        "category": "Facebook akan tutup di Indonesia",
+        "n": 50,
+        "true_hoax": 27,
+        "pred_hoax": 26,
+        "FN": 13,
+        "FP": 12,
+        "error_rate": 0.5
+      },
+      {
+        "category": "Pokemon GO = 'Aku Yahudi'",
+        "n": 50,
+        "true_hoax": 19,
+        "pred_hoax": 24,
+        "FN": 9,
+        "FP": 14,
+        "error_rate": 0.46
+      },
+      {
+        "category": "Reog Ponorogo dibakar di Filipina",
+        "n": 50,
+        "true_hoax": 19,
+        "pred_hoax": 8,
+        "FN": 14,
+        "FP": 3,
+        "error_rate": 0.34
+      },
+      {
+        "category": "gaji Presiden naik",
+        "n": 50,
+        "true_hoax": 13,
+        "pred_hoax": 15,
+        "FN": 12,
+        "FP": 14,
+        "error_rate": 0.52
+      },
+      {
+        "category": "iPhone 6 mudah melengkung",
+        "n": 50,
+        "true_hoax": 21,
+        "pred_hoax": 28,
+        "FN": 11,
+        "FP": 18,
+        "error_rate": 0.58
+      },
+      {
+        "category": "ikan lele mengandung sel kanker",
+        "n": 50,
+        "true_hoax": 20,
+        "pred_hoax": 43,
+        "FN": 5,
+        "FP": 28,
+        "error_rate": 0.66
+      },
+      {
+        "category": "pelemparan Al-Qur'an di Mako Brimob",
+        "n": 50,
+        "true_hoax": 10,
+        "pred_hoax": 6,
+        "FN": 5,
+        "FP": 1,
+        "error_rate": 0.12
+      },
+      {
+        "category": "permen dot berbahaya",
+        "n": 50,
+        "true_hoax": 18,
+        "pred_hoax": 10,
+        "FN": 12,
+        "FP": 4,
+        "error_rate": 0.32
+      },
+      {
+        "category": "peserta aksi 212 tak bisa masuk Istiqlal",
+        "n": 50,
+        "true_hoax": 15,
+        "pred_hoax": 2,
+        "FN": 15,
+        "FP": 2,
+        "error_rate": 0.34
+      },
+      {
+        "category": "sikat gigi dari bulu babi",
+        "n": 50,
+        "true_hoax": 27,
+        "pred_hoax": 29,
+        "FN": 13,
+        "FP": 15,
+        "error_rate": 0.56
+      },
+      {
+        "category": "tusuk jari bantu pasien stroke",
+        "n": 50,
+        "true_hoax": 20,
+        "pred_hoax": 41,
+        "FN": 3,
+        "FP": 24,
+        "error_rate": 0.54
+      }
+    ],
+    "source_tier": [
+      {
+        "category": "mainstream",
+        "n": 174,
+        "true_hoax": 28,
+        "pred_hoax": 44,
+        "FN": 22,
+        "FP": 38,
+        "error_rate": 0.345
+      },
+      {
+        "category": "other",
+        "n": 426,
+        "true_hoax": 202,
+        "pred_hoax": 203,
+        "FN": 105,
+        "FP": 106,
+        "error_rate": 0.495
+      }
+    ],
+    "debunk_marker": [
+      {
+        "category": "False",
+        "n": 280,
+        "true_hoax": 166,
+        "pred_hoax": 132,
+        "FN": 93,
+        "FP": 59,
+        "error_rate": 0.543
+      },
+      {
+        "category": "True",
+        "n": 320,
+        "true_hoax": 64,
+        "pred_hoax": 115,
+        "FN": 34,
+        "FP": 85,
+        "error_rate": 0.372
+      }
+    ],
+    "unanimous": [
+      {
+        "category": "False",
+        "n": 178,
+        "true_hoax": 81,
+        "pred_hoax": 73,
+        "FN": 52,
+        "FP": 44,
+        "error_rate": 0.539
+      },
+      {
+        "category": "True",
+        "n": 422,
+        "true_hoax": 149,
+        "pred_hoax": 174,
+        "FN": 75,
+        "FP": 100,
+        "error_rate": 0.415
+      }
+    ],
+    "length_quartile": [
+      {
+        "category": "(190.75, 268.0]",
+        "n": 151,
+        "true_hoax": 56,
+        "pred_hoax": 53,
+        "FN": 36,
+        "FP": 33,
+        "error_rate": 0.457
+      },
+      {
+        "category": "(268.0, 387.5]",
+        "n": 149,
+        "true_hoax": 51,
+        "pred_hoax": 47,
+        "FN": 33,
+        "FP": 29,
+        "error_rate": 0.416
+      },
+      {
+        "category": "(387.5, 1263.0]",
+        "n": 150,
+        "true_hoax": 70,
+        "pred_hoax": 82,
+        "FN": 30,
+        "FP": 42,
+        "error_rate": 0.48
+      },
+      {
+        "category": "(78.999, 190.75]",
+        "n": 150,
+        "true_hoax": 53,
+        "pred_hoax": 65,
+        "FN": 28,
+        "FP": 40,
+        "error_rate": 0.453
+      }
+    ],
+    "true_label": [
+      {
+        "category": "hoax",
+        "n": 230,
+        "true_hoax": 230,
+        "pred_hoax": 103,
+        "FN": 127,
+        "FP": 0,
+        "error_rate": 0.552
+      },
+      {
+        "category": "valid",
+        "n": 370,
+        "true_hoax": 0,
+        "pred_hoax": 144,
+        "FN": 0,
+        "FP": 144,
+        "error_rate": 0.389
+      }
+    ]
+  }
+}

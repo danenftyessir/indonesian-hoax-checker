@@ -1,5 +1,7 @@
 # Penggabungan hasil klasifikasi, retrieval, dan stance menjadi indikasi kredibilitas
 # Ambang dipilih di fase 4 (RQ5)
+# Skor retrieval tidak dibatasi (BM25) atau -1..1 (cosine), jadi similarity_score tidak dibandingkan antar-scorer
+# Confidence stance masih softmax mentah (belum dikalibrasi); dianggap setara skor mentah sampai kalibrasi
 
 from __future__ import annotations
 

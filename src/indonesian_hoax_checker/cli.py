@@ -60,7 +60,7 @@ def format_result(res: PipelineResult, verbose: bool) -> str:
         else:
             lines.append(
                 f"Retrieval{stub('retrieve')}: {r['matched_claim']!r} "
-                f"(similarity {r['similarity_score']:.2f}); klarifikasi: {r['clarification']}"
+                f"(skor {r['similarity_score']:.2f}, {r.get('scorer', '?')}); klarifikasi: {r['clarification']}"
             )
     if res.task in ("all", "stance") and want("stance"):
         if res.stance is None:

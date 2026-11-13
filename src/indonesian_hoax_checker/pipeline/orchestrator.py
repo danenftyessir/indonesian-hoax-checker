@@ -29,6 +29,27 @@ class PipelineResult:
     stubs: list[str] = field(default_factory=list) 
 
 
+RETRIEVAL_ENTITY_LABELS = ("PER", "ORG", "LOC")
+
+
+def input_claim(text: str, ner: NERResult | None) -> str:
+    # Klaim input (hypothesis stance): core_claim bila ada, kalau kosong teks penuh
+    core = (ner["core_claim"] if ner else "").strip()
+    return core or text
+
+
+def retrieval_query(text: str, ner: NERResult | None) -> str:
+    # Aturan kueri dari Danendra: core_claim + entitas PER/ORG/LOC; bila core_claim kosong, teks penuh
+    core = (ner["core_claim"] if ner else "").strip()
+    if not core:
+        return text
+    extra: list[str] = []
+    for e in ner["entities"]:
+        if e["label"] in RETRIEVAL_ENTITY_LABELS and e["text"] not in core and e["text"] not in extra:
+            extra.append(e["text"])
+    return " ".join([core, *extra])
+
+
 def run_pipeline(text: str, task: str = "all") -> PipelineResult:
     if task not in TASKS:
         raise ValueError(f"task tidak dikenal: {task!r}; pilihan: {TASKS}")
@@ -46,12 +67,12 @@ def run_pipeline(text: str, task: str = "all") -> PipelineResult:
     # Klasifikasi dan retrieval dijalankan paralel
     with ThreadPoolExecutor(max_workers=2) as pool:
         f_cls = pool.submit(stages.run_classify, text, res.ner) if need_classify else None
-        f_ret = pool.submit(stages.run_retrieve, text, res.ner) if need_retrieve else None
+        f_ret = pool.submit(stages.run_retrieve, retrieval_query(text, res.ner), res.ner) if need_retrieve else None
         res.classification = f_cls.result() if f_cls else None
         res.retrieval = f_ret.result() if f_ret else None
 
     if task in ("all", "stance"):
-        res.stance = stages.run_stance(text, res.retrieval)
+        res.stance = stages.run_stance(input_claim(text, res.ner), res.retrieval)
 
     if task == "all":
         res.verdict = combine(res.classification, res.retrieval, res.stance)
