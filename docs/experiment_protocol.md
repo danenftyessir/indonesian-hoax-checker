@@ -92,3 +92,21 @@ Kategori minimal (juga dipakai untuk `data/demo_cases.txt`):
 - Metrik: `outputs/metrics/{rq}_{model}_{seed}.json`
 - Tabel dan gambar final: `reports/tables/`, `reports/figures/`
 - Catat versi model, commit Git, dan versi dataset di setiap file metrik.
+
+## Hasil awal: dampak NER ke retrieval (2026-11-13)
+
+Skrip: `python -m indonesian_hoax_checker.ner.query_impact`. Retrieval BM25 (Danendra) tanpa filter entitas, indeks hanya judul klaim. NER = IndoBERT entitas + CLAIM seed 42 ([0012](decisions/0012-layer-entitas-dan-claim-terpisah.md)).
+
+Kueri = kalimat klaim artikel Komdigi split test (351 kalimat, tidak dipakai melatih NER); emas = klaim asal + klaster near-duplicate-nya.
+
+| Kueri | success@1 | success@5 | success@10 | MRR |
+|---|---|---|---|---|
+| Teks penuh | **0,841** | 0,909 | 0,943 | 0,872 |
+| `core_claim` saja | 0,735 | 0,838 | 0,877 | 0,780 |
+| `core_claim` + entitas PER/ORG/LOC (aturan pipeline) | 0,786 | 0,900 | 0,932 | 0,835 |
+
+Pada 100 kueri `original` (judul apa adanya; mudah karena sama dengan judul yang diindeks): teks penuh 1,000, `core_claim` + entitas 0,970, `core_claim` saja 0,890.
+
+Kesimpulan awal: untuk BM25, kueri dari NER **tidak lebih baik** daripada teks penuh. `core_claim` membuang subjek (nama tokoh dan lembaga), padahal itu kata kunci pencocokan judul; menambahkan entitas memulihkan sebagian besar selisihnya. Kata pengantar ("Beredar ... di media sosial") ternyata tidak mengganggu BM25 karena bobot kata itu rendah.
+
+Batasan: kueri berupa kalimat Komdigi yang baku, bukan pesan berantai yang berisik; kueri parafrasa (`retrieval_queries.jsonl`) masih draf kosong; hanya BM25 (embedding belum diuji). Ulangi setelah parafrasa terisi dan dengan scorer embedding.
