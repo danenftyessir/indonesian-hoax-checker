@@ -92,3 +92,36 @@ Kategori minimal (juga dipakai untuk `data/demo_cases.txt`):
 - Metrik: `outputs/metrics/{rq}_{model}_{seed}.json`
 - Tabel dan gambar final: `reports/tables/`, `reports/figures/`
 - Catat versi model, commit Git, dan versi dataset di setiap file metrik.
+
+## Hasil awal: dampak NER ke retrieval (2026-11-13)
+
+Skrip: `python -m indonesian_hoax_checker.ner.query_impact`. Retrieval BM25 (Danendra) tanpa filter entitas, indeks hanya judul klaim. NER = IndoBERT entitas + CLAIM seed 42 ([0012](decisions/0012-layer-entitas-dan-claim-terpisah.md)).
+
+Kueri = kalimat klaim artikel Komdigi split test (351 kalimat, tidak dipakai melatih NER); emas = klaim asal + klaster near-duplicate-nya.
+
+| Kueri | success@1 | success@5 | success@10 | MRR |
+|---|---|---|---|---|
+| Teks penuh | **0,841** | 0,909 | 0,943 | 0,872 |
+| `core_claim` saja | 0,735 | 0,838 | 0,877 | 0,780 |
+| `core_claim` + entitas PER/ORG/LOC (aturan pipeline) | 0,786 | 0,900 | 0,932 | 0,835 |
+
+Pada 100 kueri `original` (judul apa adanya; mudah karena sama dengan judul yang diindeks): teks penuh 1,000, `core_claim` + entitas 0,970, `core_claim` saja 0,890.
+
+Kesimpulan awal: untuk BM25, kueri dari NER **tidak lebih baik** daripada teks penuh. `core_claim` membuang subjek (nama tokoh dan lembaga), padahal itu kata kunci pencocokan judul; menambahkan entitas memulihkan sebagian besar selisihnya. Kata pengantar ("Beredar ... di media sosial") ternyata tidak mengganggu BM25 karena bobot kata itu rendah.
+
+Batasan: kueri berupa kalimat Komdigi yang baku, bukan pesan berantai yang berisik; kueri parafrasa (`retrieval_queries.jsonl`) masih draf kosong; hanya BM25 (embedding belum diuji). Ulangi setelah parafrasa terisi dan dengan scorer embedding.
+
+### Cara memakai entitas di retrieval (kueri = teks penuh)
+
+Skrip: `python -m indonesian_hoax_checker.ner.entity_use`. Kueri dan emas sama seperti di atas; entitas klaim basis = NER atas judul klaim; `beta` boost dipilih di split dev (299 kueri, beta 0,1), hasil di test (351 kueri).
+
+| Cara | success@1 | success@5 | success@10 | MRR |
+|---|---|---|---|---|
+| Polos (teks penuh) | 0,841 | 0,909 | 0,943 | 0,872 |
+| Filter keras entitas | 0,746 | 0,818 | 0,841 | 0,776 |
+| Boost skor bila berbagi entitas | 0,838 | 0,920 | 0,943 | 0,872 |
+| Teks penuh + entitas di akhir kueri | 0,778 | 0,920 | 0,940 | 0,836 |
+
+Diagnostik filter: dari 291 kueri test yang punya entitas, klaim emas tetap lolos filter hanya pada 243 (83%). Pada 48 kueri entitas kueri tidak beririsan dengan entitas judul emas (judul pendek sering tidak memuat nama yang sama, atau NER memberi bentuk berbeda), sehingga klaim emas tersingkir. 60 kueri test tidak punya entitas sama sekali.
+
+Kesimpulan awal untuk BM25 + kueri kalimat Komdigi: entitas NER **tidak menaikkan** retrieval. Filter keras menurunkan success@1 sembilan poin, boost tidak berpengaruh berarti, dan menambah entitas ke kueri menurunkan success@1. Pembanding polos sudah kuat (0,841), jadi ruang perbaikannya kecil. Yang masih perlu diuji: scorer embedding, kueri parafrasa dan pesan berisik, serta filter dengan pencocokan entitas yang lebih longgar (alias, singkatan).
