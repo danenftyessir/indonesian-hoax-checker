@@ -11,6 +11,7 @@ data:
 extra_eval:
   nergrit_test: data/processed/ner/nergrit_test.conll
   seed_informal_test: data/processed/ner/seed_entity_informal_test.conll
+  seed_sim_informal_test: data/processed/ner/seed_entity_test_sim_informal.conll   # test seed versi medsos sintetis
 lowercase: false
 max_length: 256
 lr: 0.00003

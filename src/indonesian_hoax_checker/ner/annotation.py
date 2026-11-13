@@ -29,6 +29,7 @@ from indonesian_hoax_checker.ner.dataset import write_conll
 from indonesian_hoax_checker.ner.labels import TYPES, get_spans
 from indonesian_hoax_checker.ner.metrics import entity_scores
 from indonesian_hoax_checker.ner.time_rules import add_time_tags
+from indonesian_hoax_checker.preprocessing.augment import TEST_PROBS, augment_corpus
 from indonesian_hoax_checker.preprocessing.tokenizer import tokenize
 
 ANNOTATION_DIR = Path("data/annotations/ner")
@@ -390,6 +391,12 @@ def main() -> None:
                 write_conll(out / f"seed_{name}.conll", [(r["tokens"], r["tags"]) for r in part])
                 write_conll(out / f"seed_entity_{name}.conll", [(r["tokens"], layers(r)[0]) for r in part])
                 write_conll(out / f"seed_claim_{name}.conll", [(r["tokens"], layers(r)[1]) for r in part])
+        # Uji informal sintetis (RQ1): test seed dijadikan gaya medsos (huruf kecil, singkatan, typo, "!!!"),
+        # label ikut. Lebih besar (jumlah kalimat test) daripada 30 kalimat informal tulisan tangan, tetapi buatan.
+        out = Path(args.out_dir)
+        for layer, pick in (("", lambda r: r["tags"]), ("entity_", lambda r: layers(r)[0]), ("claim_", lambda r: layers(r)[1])):
+            sentences = [(r["tokens"], pick(r)) for r in parts["test"]]
+            write_conll(out / f"seed_{layer}test_sim_informal.conll", augment_corpus(sentences, seed=2026, probs=TEST_PROBS))
         print(", ".join(f"seed {name} {len(part)}" for name, part in parts.items()))
 
 

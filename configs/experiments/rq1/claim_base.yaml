@@ -1,0 +1,3 @@
+# RQ1 layer claim: Tanpa perlakuan (pembanding)
+base: configs/models/ner_indobert_claim.yaml
+name: rq1_claim_base

@@ -1,0 +1,4 @@
+# RQ1 layer claim: Normalisasi teks informal di semua split dan saat prediksi
+base: configs/models/ner_indobert_claim.yaml
+name: rq1_claim_norm
+normalize: true

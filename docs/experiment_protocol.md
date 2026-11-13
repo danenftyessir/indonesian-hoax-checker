@@ -20,8 +20,8 @@ Aturan bersama supaya semua eksperimen bisa dibandingkan. Config tiap RQ ada di 
 | Data | NERGrit (cased) + seed set; NERP dedup hanya varian lowercase |
 | Metrik | Entity-level F1 (seqeval, strict) keseluruhan dan per tipe; F1 CLAIM; formal vs informal |
 | Ablasi | Dengan/tanpa normalisasi teks; dengan/tanpa augmentasi informal (huruf kecil, typo, singkatan, tanda baca berlebih); varian huruf kecil + NERP |
-| Varian | `configs/experiments/rq1_ner.yaml`: base, norm, aug, norm_aug, lower_nerp, untuk BiLSTM-CRF dan IndoBERT; dijalankan `notebooks/02_ner/rq1_ner_colab.ipynb` |
-| Uji informal | `nergrit_test_informal` (sintetis, seed 2026) sekarang; `seed_informal_test` (30 kalimat buatan tim) setelah dianotasi |
+| Varian | `configs/experiments/rq1_ner.yaml`, dua layer tahap 2 (IndoBERT-p1, dari model NERGrit): CLAIM `base`, `norm`, `aug` (+1 salinan informal), `aug3` (+3); entitas `base`, `norm`, `aug`; 3 seed; dijalankan `notebooks/02_ner/rq1_ner_colab.ipynb` |
+| Uji informal | `seed_informal_test` (30 kalimat tulisan tangan, dikoreksi), `seed_sim_informal_test` (seed test versi medsos sintetis: huruf kecil, singkatan, typo, "!!!"), dan seed test formal sebagai pembanding. Model CLAIM pembanding: F1 formal 0,630, informal 0,101 |
 | Error analysis | `python -m indonesian_hoax_checker.ner.error_analysis <prediksi>`: salah tipe, salah batas, terlewat, salah deteksi per tipe |
 | Target wajar | F1 NERGrit sekitar 70 (IndoNLU melaporkan 69,87 untuk IndoBERT-base); CLAIM dan TIME diperkirakan lebih rendah karena data kecil |
 
