@@ -164,3 +164,54 @@ Batasan: uji informal sintetis dibuat dengan generator yang sama dengan augmenta
 | aug3 | **0,802 ± 0,013** | — |
 
 Keputusan: `ner_indobert_claim` memakai `augment` 3 salinan (dev naik 0,05, konsisten dengan test). `ner_indobert_entity` tetap tanpa augmentasi: dev tidak berbeda, dan kenaikannya hanya terlihat di uji sintetis yang sejenis dengan augmentasi latih. Di antara 3 seed `aug3`, seed 42 punya dev tertinggi (0,816), jadi model terpasang tetap seed 42. Checkpoint varian RQ1 sudah dihapus, jadi model CLAIM dilatih ulang lewat `train_ner_colab.ipynb` bagian 5c (cukup layer CLAIM, seed 42); namanya sama (`ner_indobert_claim_seed42`), jadi `pipeline.yaml` tidak berubah.
+
+### Model CLAIM terpasang (2026-11-14)
+
+`ner_indobert_claim_seed42` dilatih ulang dengan augmentasi 3 salinan (`train_ner_colab.ipynb`, `STAGE2 = ["ner_indobert_claim"]`, Drive `hasil_training/ner_20261114-*`). Hasilnya sama persis dengan run RQ1 `aug3` seed 42 (dev 0,816, test 0,618), jadi training ini reprodusibel.
+
+Uji tambahan kini menyimpan prediksi, sehingga dugaan batas span bisa dicek. F1 strict dibandingkan dengan F1 tumpang tindih (span prediksi dihitung benar bila beririsan dengan span gold):
+
+| Uji | F1 strict | F1 tumpang tindih | Benar | Salah batas | Terlewat | Salah deteksi |
+|---|---|---|---|---|---|---|
+| Seed test formal (99 span) | 0,618 | 0,933 | 64 | 30 | 5 | 9 |
+| Informal sintetis (99) | 0,577 | 0,950 | 62 | 33 | 4 | 7 |
+| Informal tulisan tangan (28) | 0,164 | 0,870 | 5 | 21 | 2 | 6 |
+
+Model menemukan letak klaim dengan baik di ketiga uji (26 dari 28 klaim tulisan tangan tersentuh). Hampir semua kesalahan adalah batas span. Pada 21 salah batas tulisan tangan:
+
+- **Prediksi lebih panjang (16):** model ikut mengambil keterangan tempat/waktu atau obrolan di akhir ("diliburin seminggu krn polusi", "bakal guncang padang mggu dpn kata bmkg", "... ? ? hati2 ya bun"), atau memotong TIME di tengah ("sblm", "tgl", "jd"). Ini kesalahan model.
+- **Subjek bukan entitas ikut dalam prediksi (4 dari 16 di atas):** "vaksin booster bikin mandul", "kuota internet bakal dihapus ...", "garam merk tertentu dicampur plastik ...", "rs boleh nolak pasien bpjs ...". Pedoman (contoh 5) mengeluarkan subjek bukan entitas dari CLAIM, jadi label gold sudah benar dan ini kesalahan model. Seed set train/test formal tidak selalu mengikuti contoh 5 (mis. "seorang kakek penjual keripik ditendang oleh ..."), sehingga model belajar menyertakan subjek.
+- **Prediksi lebih pendek atau bergeser (5):** "bagi2 saldo", "tanpa tes", "naik 2x lipat", "gak tilang lg di jalan", "cair hari" (gold "900rb cair").
+
+### Perbaikan label informal dan aturan pangkas CLAIM (2026-11-14)
+
+**Label 30 kalimat tulisan tangan.** Semua 30 kalimat diperiksa ulang terhadap pedoman (bukan hanya kalimat yang salah diprediksi). Ditemukan kesalahan konversi: label informal ditulis sebagai satu layer gabungan, sehingga CLAIM terpotong tepat sebelum entitas (0 dari 30 CLAIM berisi entitas, sedangkan seed test 62 dari 100), padahal sejak [0012](decisions/0012-layer-entitas-dan-claim-terpisah.md) entitas di dalam klaim tetap bagian CLAIM. Koreksi di `review_patches.json` (8 kalimat):
+
+| id | Sebelum | Sesudah | Alasan |
+|---|---|---|---|
+| informal-009 | padamin listrik | padamin listrik se-jawa bali | objek terpotong entitas |
+| informal-011 | bakal guncang | bakal guncang padang | objek terpotong entitas |
+| informal-026 | boleh nolak pasien | boleh nolak pasien bpjs | objek terpotong entitas |
+| informal-027 | bkl tenggelamin | bkl tenggelamin jakarta utara | objek terpotong entitas |
+| informal-020 | 900rb cair | cair | span mulai dari predikat (aturan 1, contoh 5) |
+| informal-013 | umumin pajak motor naik 2x lipat | naik 2x lipat | kata pelapor tidak masuk, seperti "bilang"/"nyatain" di kalimat 007, 019, 026 |
+| informal-014 | gak tilang lg di jalan , semua pke kamera etle | gak tilang lg | satu CLAIM per kalimat (aturan 2); keterangan tempat tidak masuk (contoh 4) |
+| informal-010 | tanpa tes , cukup transfer biaya admin 250rb | tanpa tes | satu CLAIM per kalimat; permintaan tidak masuk (contoh 6) |
+
+Catatan bias: koreksi ini dibuat setelah melihat prediksi model. Dua koreksi (013, 010) kini sama persis dengan prediksi, empat koreksi objek justru menjauhkan gold dari prediksi. F1 strict model CLAIM pada uji tulisan tangan: 0,164 → 0,230 karena label saja.
+
+**Aturan pangkas (`ner/claim_trim.py`).** Pasca-proses span CLAIM memakai entitas prediksi model entitas, diturunkan dari pedoman, lalu dipilih di dev (model CLAIM dan entitas seed 42; F1 strict CLAIM):
+
+| Aturan | Dev | Test | Tulisan tangan | Sintetis |
+|---|---|---|---|---|
+| tanpa | 0,816 | 0,618 | 0,230 | 0,577 |
+| time (potong di TIME + kata depan waktu) | 0,816 | 0,638 | 0,361 | 0,595 |
+| punct (berhenti di "?"/"!") | 0,816 | 0,618 | 0,230 | 0,577 |
+| attribution ("kata"/"menurut" + entitas) | 0,816 | 0,618 | 0,230 | 0,577 |
+| loc ("di <LOC>" di ujung) | 0,796 | 0,580 | 0,295 | 0,540 |
+| **time + punct (dipakai)** | **0,816** | **0,638** | **0,361** | **0,595** |
+| semua | 0,796 | 0,599 | 0,426 | 0,558 |
+
+Tidak ada aturan yang menaikkan dev (span dev formal jarang memuat TIME), jadi pemilihannya: aturan dari pedoman yang tidak menurunkan dev. `loc` ditolak karena menurunkan dev dan test formal walaupun menaikkan tulisan tangan. `punct` tidak mengubah F1 tetapi membuang obrolan dari `core_claim` ("... ? ? hati2 ya bun"). `NERPredictor` menjalankan `time + punct` secara default bila memakai `claim_checkpoint` (`trim_claim=False` untuk mematikan).
+
+Batasan: uji tulisan tangan sudah dipakai untuk error analysis, jadi angkanya bukan lagi uji yang benar-benar terpisah; angka test formal dan dev yang menjadi dasar keputusan. Kesalahan yang tersisa di tulisan tangan: model entitas melewatkan TIME informal ("mggu dpn", "skrg", "per bulan depan"), subjek bukan entitas ikut CLAIM, dan atribusi tanpa entitas ("kata bmkg").
