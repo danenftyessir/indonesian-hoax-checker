@@ -8,6 +8,11 @@
 #   punct        span berhenti sebelum "?" atau "!" (sisanya biasanya obrolan: "? ? hati2 ya bun")
 #   attribution  sumber di ujung tidak masuk: "... kata bmkg", "... menurut Kominfo"
 #   loc          keterangan tempat "di <LOC>" di ujung tidak masuk (contoh 4 pedoman: "di Bali")
+#   subject      subjek bukan entitas tidak masuk (contoh 5 pedoman): span mulai dari predikat pertama
+#                ("garam merk tertentu dicampur plastik" -> "dicampur plastik"), paling jauh 4 token
+#
+# Layer entitas bisa dilengkapi TIME dari time_rules.py (fill_time), karena model entitas sering
+# melewatkan TIME informal ("mggu dpn", "skrg").
 #
 # Hasil pemilihan di dev ada di docs/experiment_protocol.md.
 # Bandingkan kombinasi aturan di dev (dipakai untuk memilih) lalu test dan uji informal:
@@ -16,11 +21,14 @@
 import argparse
 from pathlib import Path
 
+from indonesian_hoax_checker.ner.claim_rules import is_predicate
 from indonesian_hoax_checker.ner.dataset import read_conll
 from indonesian_hoax_checker.ner.labels import get_spans
+from indonesian_hoax_checker.ner.time_rules import add_time_tags
 
-RULES = ("time", "punct", "attribution", "loc")
-# Dipakai NERPredictor: dev tidak turun, test naik. attribution tidak berpengaruh, loc menurunkan dev
+RULES = ("time", "punct", "attribution", "loc", "subject")
+# Dipakai NERPredictor: dev tidak turun, test naik. attribution tidak berpengaruh; loc dan subject menurunkan dev.
+# fill_time tidak dipakai default: dev sama, TIME test formal sedikit turun (lihat docs/experiment_protocol.md)
 DEFAULT_RULES = ("time", "punct")
 TIME_PREPOSITIONS = {"mulai", "pada", "sejak", "sebelum", "sblm", "sampai", "smp", "hingga", "per", "selama",
                      "slama", "tanggal", "tgl", "tahun", "thn", "bulan", "hari", "hr", "jd", "menjadi", "di"}
@@ -35,8 +43,13 @@ def strip_end(tokens: list[str], start: int, end: int, words: set[str]) -> int:
     return end
 
 
-def trim_span(tokens: list[str], entity_tags: list[str], start: int, end: int, rules=RULES) -> int:
-    # Mengembalikan ujung baru span CLAIM [start, end)
+def trim_span(tokens: list[str], entity_tags: list[str], start: int, end: int, rules=RULES) -> tuple[int, int]:
+    # Mengembalikan span CLAIM baru [start, end)
+    if "subject" in rules and not is_predicate(tokens[start]):
+        for j in range(start + 1, min(start + 5, end)):
+            if is_predicate(tokens[j]):
+                start = j
+                break
     if "punct" in rules:
         for i in range(start + 1, end):
             if tokens[i] in STOP_PUNCT:
@@ -52,17 +65,21 @@ def trim_span(tokens: list[str], entity_tags: list[str], start: int, end: int, r
             if entity_tags[i].endswith("TIME"):
                 end = strip_end(tokens, start + 1, i, TIME_PREPOSITIONS)
                 break
+        else:
+            # TIME tepat setelah span: kata depannya ("sblm", "mulai") tidak ikut CLAIM
+            if end < len(tokens) and entity_tags[end].endswith("TIME"):
+                end = strip_end(tokens, start + 1, end, TIME_PREPOSITIONS)
     if "loc" in rules:
         spans = [(a, b) for kind, a, b in get_spans(entity_tags) if kind == "LOC" and start < a and b == end]
         if spans and tokens[spans[0][0] - 1].lower() == "di" and spans[0][0] - 1 > start:
             end = spans[0][0] - 1
-    return strip_end(tokens, start + 1, end, EDGE_PUNCT)
+    return start, strip_end(tokens, start + 1, end, EDGE_PUNCT)
 
 
 def trim_claims(tokens: list[str], entity_tags: list[str], claim_tags: list[str], rules=RULES) -> list[str]:
     out = ["O"] * len(tokens)
     for _, start, end in get_spans(claim_tags):
-        end = trim_span(tokens, entity_tags, start, end, rules)
+        start, end = trim_span(tokens, entity_tags, start, end, rules)
         out[start] = "B-CLAIM"
         for i in range(start + 1, end):
             out[i] = "I-CLAIM"
@@ -77,34 +94,55 @@ def f1(gold: list[list[str]], pred: list[list[str]]) -> float:
     return 2 * tp / (n_g + n_p) if n_g + n_p else 0.0
 
 
+def fill_time(tokens: list[str], entity_tags: list[str]) -> list[str]:
+    # TIME dari aturan hanya di token yang masih O (entitas model tidak ditimpa)
+    return add_time_tags(tokens, entity_tags)
+
+
 def main() -> None:
     from indonesian_hoax_checker.ner.predict import NERPredictor
 
-    parser = argparse.ArgumentParser(description="Nilai aturan pangkas CLAIM per kombinasi aturan.")
+    parser = argparse.ArgumentParser(description="Nilai fill_time dan aturan pangkas CLAIM per kombinasi.")
     parser.add_argument("--entity-checkpoint", default="artifacts/checkpoints/ner/ner_indobert_entity_seed42")
     parser.add_argument("--claim-checkpoint", default="artifacts/checkpoints/ner/ner_indobert_claim_seed42")
     parser.add_argument("--data-dir", default="data/processed/ner")
     args = parser.parse_args()
 
     entity_model = NERPredictor(args.entity_checkpoint)
-    claim_model = NERPredictor(args.claim_checkpoint)
-    combos = [(), ("time",), ("punct",), ("attribution",), ("loc",), ("time", "punct"),
-              ("time", "punct", "attribution"), RULES]
+    claim_model = NERPredictor(args.claim_checkpoint, trim_claim=False)
     uji = ["dev", "test", "informal_test", "test_sim_informal"]
-    print("| aturan | " + " | ".join(uji) + " |")
-    print("|---" * (len(uji) + 1) + "|")
     data = {}
     for name in uji:
-        sentences = read_conll(Path(args.data_dir) / f"seed_claim_{name}.conll")
-        words = [t for t, _ in sentences]
-        data[name] = ([g for _, g in sentences], words, entity_model.tag(words), claim_model.tag(words))
+        claim_gold = read_conll(Path(args.data_dir) / f"seed_claim_{name}.conll")
+        entity_gold = read_conll(Path(args.data_dir) / f"seed_entity_{name}.conll")
+        words = [t for t, _ in claim_gold]
+        ent = entity_model.tag(words)
+        data[name] = (words, [g for _, g in claim_gold], [g for _, g in entity_gold], ent,
+                      [fill_time(w, e) for w, e in zip(words, ent)], claim_model.tag(words))
+
+    def time_only(tags):
+        return [[t if t.endswith("TIME") else "O" for t in s] for s in tags]
+
+    print("Layer entitas (F1 semua tipe / F1 TIME):")
+    print("| entitas | " + " | ".join(uji) + " |")
+    print("|---" * (len(uji) + 1) + "|")
+    for label, k in (("model", 3), ("model + fill_time", 4)):
+        cells = [f"{f1(d[2], d[k]):.3f} / {f1(time_only(d[2]), time_only(d[k])):.3f}" for d in data.values()]
+        print(f"| {label} | " + " | ".join(cells) + " |")
+
+    combos = [(), ("time",), ("time", "punct"), ("subject",), ("time", "punct", "subject"), ("loc",)]
+    print("\nCLAIM (F1 strict):")
+    print("| aturan | entitas | " + " | ".join(uji) + " |")
+    print("|---" * (len(uji) + 2) + "|")
     for rules in combos:
-        scores = []
-        for name in uji:
-            gold, words, ent, clm = data[name]
-            pred = [trim_claims(w, e, c, rules) for w, e, c in zip(words, ent, clm)]
-            scores.append(f"{f1(gold, pred):.3f}")
-        print(f"| {'+'.join(rules) or 'tanpa'} | " + " | ".join(scores) + " |")
+        for label, k in (("model", 3), ("+ fill_time", 4)):
+            if not rules and k == 4:
+                continue
+            cells = []
+            for d in data.values():
+                pred = [trim_claims(w, e, c, rules) for w, e, c in zip(d[0], d[k], d[5])]
+                cells.append(f"{f1(d[1], pred):.3f}")
+            print(f"| {'+'.join(rules) or 'tanpa'} | {label} | " + " | ".join(cells) + " |")
 
 
 if __name__ == "__main__":

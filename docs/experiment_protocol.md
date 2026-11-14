@@ -214,4 +214,37 @@ Catatan bias: koreksi ini dibuat setelah melihat prediksi model. Dua koreksi (01
 
 Tidak ada aturan yang menaikkan dev (span dev formal jarang memuat TIME), jadi pemilihannya: aturan dari pedoman yang tidak menurunkan dev. `loc` ditolak karena menurunkan dev dan test formal walaupun menaikkan tulisan tangan. `punct` tidak mengubah F1 tetapi membuang obrolan dari `core_claim` ("... ? ? hati2 ya bun"). `NERPredictor` menjalankan `time + punct` secara default bila memakai `claim_checkpoint` (`trim_claim=False` untuk mematikan).
 
-Batasan: uji tulisan tangan sudah dipakai untuk error analysis, jadi angkanya bukan lagi uji yang benar-benar terpisah; angka test formal dan dev yang menjadi dasar keputusan. Kesalahan yang tersisa di tulisan tangan: model entitas melewatkan TIME informal ("mggu dpn", "skrg", "per bulan depan"), subjek bukan entitas ikut CLAIM, dan atribusi tanpa entitas ("kata bmkg").
+Batasan: uji tulisan tangan sudah dipakai untuk error analysis, jadi angkanya bukan lagi uji yang benar-benar terpisah; angka test formal dan dev yang menjadi dasar keputusan. Kesalahan yang tersisa di tulisan tangan: model entitas melewatkan TIME informal ("mggu dpn", "skrg", "per bulan depan"), subjek bukan entitas ikut CLAIM, dan atribusi tanpa entitas ("kata bmkg"). Tiga perbaikan untuk ini diuji di bawah.
+
+### Perbaikan lanjutan: TIME informal dan subjek (2026-11-14)
+
+Tiga perubahan diuji dengan `python -m indonesian_hoax_checker.ner.claim_trim`, dipilih di dev seperti sebelumnya:
+
+1. **Aturan `time` diperluas:** kata depan waktu di ujung CLAIM ("sblm", "mulai") juga dibuang bila TIME tepat setelah span ("bakal blokir ... data sblm | 31 desember").
+2. **`fill_time`:** layer entitas dilengkapi TIME dari `time_rules.py` (ditambah singkatan informal: "mggu", "thn", "taun", "hr", "dpn", "skrg", serta "akhir/awal + waktu") pada token yang masih O.
+3. **`subject`:** span CLAIM dimulai dari predikat pertama, sesuai contoh 5 pedoman.
+
+Layer entitas (F1 semua tipe / F1 TIME):
+
+| Entitas | Dev | Test | Tulisan tangan | Sintetis |
+|---|---|---|---|---|
+| model | 0,781 / 1,000 | 0,799 / 0,786 | 0,632 / 0,636 | 0,698 / 0,576 |
+| model + fill_time | 0,781 / 1,000 | 0,798 / 0,772 | 0,700 / 0,776 | 0,698 / 0,581 |
+
+CLAIM (F1 strict):
+
+| Aturan | Entitas | Dev | Test | Tulisan tangan | Sintetis |
+|---|---|---|---|---|---|
+| tanpa | model | 0,816 | 0,618 | 0,230 | 0,577 |
+| **time (diperluas) + punct (dipakai)** | **model** | **0,816** | **0,647** | **0,459** | **0,595** |
+| time + punct | + fill_time | 0,816 | 0,647 | 0,525 | 0,586 |
+| subject | model | 0,673 | 0,551 | 0,230 | 0,484 |
+| time + punct + subject | model | 0,673 | 0,580 | 0,459 | 0,493 |
+
+Keputusan:
+
+- **Aturan `time` yang diperluas dipakai:** dev tetap, test 0,638 → 0,647.
+- **`fill_time` tidak dipakai secara default.** Dev tidak berubah, TIME test formal turun sedikit (0,786 → 0,772), dan CLAIM sintetis turun (0,595 → 0,586). Kenaikan besar hanya ada di uji tulisan tangan, padahal kosakata singkatannya dipilih setelah melihat kesalahan di uji itu, jadi kenaikan itu tidak bisa dijadikan bukti. Fungsi dan pola informal tetap ada di `claim_trim.fill_time` / `time_rules.py`.
+- **`subject` ditolak:** dev turun 0,14. Ini mengonfirmasi bahwa label seed set formal sering menyertakan subjek bukan entitas, berbeda dengan contoh 5 pedoman. Memperbaikinya butuh pelabelan ulang seed set (train silver dan dev/test), bukan aturan pasca-proses.
+
+Ringkasan model CLAIM terpasang (seed 42, aug3 + `time` + `punct`): dev 0,816, test 0,647 (dari 0,630 rata-rata model awal), tulisan tangan 0,459 (label diperbaiki; tidak lagi uji terpisah), sintetis 0,595.

@@ -1,5 +1,5 @@
-# Penanda TIME berbasis aturan, untuk pra-anotasi seed set (annotator tinggal mengoreksi).
-# Bukan model akhir: hasilnya selalu diperiksa manusia.
+# Penanda TIME berbasis aturan: pra-anotasi seed set (annotator tinggal mengoreksi) dan pengisi TIME
+# yang terlewat model entitas saat prediksi (NERPredictor, terutama singkatan informal "mggu dpn", "skrg").
 # Aturan mengikuti docs/annotation_guidelines.md: kata depan (pada, mulai, sejak) tidak masuk,
 # durasi "selama tiga hari" masuk.
 
@@ -11,9 +11,10 @@ MONTHS = {
     "jan", "feb", "mar", "apr", "jun", "jul", "agu", "agt", "ags", "sep", "sept", "okt", "nov", "des",
 }
 DAYS = {"senin", "selasa", "rabu", "kamis", "jumat", "jum'at", "sabtu", "minggu", "ahad"}
-UNITS = {"detik", "menit", "jam", "hari", "minggu", "pekan", "bulan", "tahun", "abad"}
-RELATIVE = {"depan", "lalu", "ini", "kemarin", "mendatang", "sebelumnya"}
-SINGLE = {"besok", "bsk", "kemarin", "kmrn", "lusa", "semalam"}
+UNITS = {"detik", "menit", "jam", "hari", "minggu", "pekan", "bulan", "tahun", "abad",
+         "hr", "mggu", "mgg", "bln", "thn", "taun"}  # baris kedua: singkatan informal
+RELATIVE = {"depan", "lalu", "ini", "kemarin", "mendatang", "sebelumnya", "dpn", "kmrn", "kemaren"}
+SINGLE = {"besok", "bsk", "kemarin", "kmrn", "kemaren", "lusa", "semalam", "skrg", "sekarang"}
 NUMBER_WORDS = {
     "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh",
     "sebelas", "beberapa", "puluhan", "ratusan",
@@ -45,8 +46,11 @@ PATTERNS = [
     [lambda t: t in MONTHS, _is_year],
     # 12/11/2026 atau 12-11-2026 (tokenizer memecah "/" jadi token sendiri)
     [_is_day_number, lambda t: t in {"/", "-"}, lambda t: t.isdigit(), lambda t: t in {"/", "-"}, _is_year],
-    # tahun 2026
-    [lambda t: t == "tahun", _is_year],
+    # tahun 2026, thn 2027
+    [lambda t: t in {"tahun", "thn", "taun"}, _is_year],
+    # akhir tahun ini, awal bulan depan, akhir Desember 2026
+    [lambda t: t in {"akhir", "awal", "pertengahan"}, lambda t: t in UNITS or t in MONTHS,
+     lambda t: t in RELATIVE or _is_year(t), "?"],
     # bulan depan, tahun lalu, minggu ini
     [lambda t: t in UNITS, lambda t: t in RELATIVE],
     # selama tiga hari, 2 minggu
@@ -54,7 +58,7 @@ PATTERNS = [
     # pukul 10.00 WIB
     [lambda t: t in {"pukul", "jam"}, _is_number, lambda t: t in ZONES, "?"],
     # hari ini, pagi ini, malam ini
-    [lambda t: t in {"hari", "pagi", "siang", "sore", "malam"}, lambda t: t == "ini"],
+    [lambda t: t in {"hari", "hr", "pagi", "siang", "sore", "malam"}, lambda t: t == "ini"],
     # besok, kemarin, lusa
     [lambda t: t in SINGLE],
     # nama hari saja

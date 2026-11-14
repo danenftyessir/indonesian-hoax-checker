@@ -31,3 +31,17 @@ def test_claim_keeps_at_least_first_token():
     entity = ["O", "B-TIME"]
     claim_tags = ["B-CLAIM", "I-CLAIM"]
     assert claim(tokens, trim_claims(tokens, entity, claim_tags, DEFAULT_RULES)) == "mulai"
+
+
+def test_preposition_before_following_time_is_dropped():
+    tokens = "OJK blokir rekening sblm 31 desember".split()
+    entity = ["B-ORG", "O", "O", "O", "B-TIME", "I-TIME"]
+    claim_tags = ["O", "B-CLAIM", "I-CLAIM", "I-CLAIM", "O", "O"]
+    assert claim(tokens, trim_claims(tokens, entity, claim_tags, DEFAULT_RULES)) == "blokir rekening"
+
+
+def test_informal_time_rules():
+    from indonesian_hoax_checker.ner.time_rules import time_spans
+
+    tokens = "gempa guncang padang mggu dpn , mulai skrg".split()
+    assert [" ".join(tokens[a:b]) for a, b in time_spans(tokens)] == ["mggu dpn", "skrg"]
