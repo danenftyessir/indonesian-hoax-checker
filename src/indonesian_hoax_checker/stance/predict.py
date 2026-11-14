@@ -45,6 +45,33 @@ def predict_stance(
     return {"label": label, "confidence": conf, "claim_id": candidate["claim_id"]}
 
 
+def combine_directions(
+    forward: tuple[StanceLabel, float], backward: tuple[StanceLabel, float]
+) -> tuple[StanceLabel, float]:
+    """Gabungkan dua arah NLI. `forward` = (premise klaim terbantah, hypothesis input; keputusan 0002),
+    `backward` = arah sebaliknya. Input yang panjang jarang di-entail judul klaim yang pendek, padahal
+    input itu meng-entail judulnya; jadi `supports`/`refutes` cukup muncul di satu arah, asalkan arah
+    lain tidak berlawanan. Dua arah berlawanan (supports vs refutes) -> unrelated, confidence 0,5."""
+    labels = {forward[0], backward[0]}
+    for label, other in (("supports", "refutes"), ("refutes", "supports")):
+        if label in labels and other not in labels:
+            return label, max(c for lab, c in (forward, backward) if lab == label)
+    if labels == {"unrelated"}:
+        return "unrelated", min(forward[1], backward[1])
+    return "unrelated", 0.5
+
+
+def predict_stance_bidirectional(
+    model: StanceModel, input_claim: str, candidate: RetrievalCandidate | None
+) -> StanceResult:
+    """Seperti predict_stance, tetapi menilai dua arah dan menggabungkannya (combine_directions)."""
+    if candidate is None:
+        return {"label": "unrelated", "confidence": 1.0, "claim_id": None}
+    forward, backward = model.predict_batch([(candidate["claim"], input_claim), (input_claim, candidate["claim"])])
+    label, conf = combine_directions(forward, backward)
+    return {"label": label, "confidence": conf, "claim_id": candidate["claim_id"]}
+
+
 def predict_against_candidates(
     model: StanceModel, input_claim: str, candidates: Sequence[RetrievalCandidate]
 ) -> list[StanceResult]:

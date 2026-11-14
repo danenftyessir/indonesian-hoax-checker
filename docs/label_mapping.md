@@ -42,7 +42,7 @@ Arah pasangan ([0002](decisions/0002-arah-pasangan-stance.md)):
 | Label | Arti | Dampak ke kredibilitas |
 |---|---|---|
 | `supports` | Input mengulang klaim yang sudah dibantah | Rendah, sertakan bantahan resmi |
-| `refutes` | Input menyangkal klaim yang sudah dibantah | Bukti bahwa input kemungkinan benar |
+| `refutes` | Input menyangkal klaim yang sudah dibantah | Petunjuk bahwa input menyangkal hoaks; diserahkan ke tinjauan manusia (bukan bukti kebenaran) |
 | `unrelated` | Tidak berkaitan | Tidak ada bukti dari basis klaim |
 
 Pemetaan IndoNLI: `entailment` → `supports`, `contradiction` → `refutes`, `neutral` → `unrelated`.

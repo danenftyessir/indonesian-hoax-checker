@@ -17,3 +17,35 @@ classification:
   # 40% pada 100-199 kata dan kurang lebih 3% dari 200 kata, 0 = nonaktif
   min_words: 200
   device: auto
+
+retrieval:
+  # Config scorer di configs/models/ (dibaca retrieval/search.py build_retriever). Basis klaim
+  # data/processed/refuted_claims/claims.jsonl wajib ada; bila tidak, retrieval jalan sebagai stub.
+  # E5 dipilih atas BM25 untuk CLI: di data/demo_cases.txt E5 menemukan klaim yang benar untuk teks informal
+  # dan multi-paragraf, BM25 tidak. Pertama kali jalan: unduh intfloat/multilingual-e5-base (~1,1 GB) dan
+  # embedding 3.048 klaim (beberapa menit di CPU), lalu di-cache di artifacts/retrieval_indexes/.
+  config: configs/models/retrieval_embeddings.yaml
+  top_k: 5
+  # Ambang cosine untuk menolak kueri tanpa padanan, dipilih di set dev (14 Nov 2026,
+  # data/annotations/claim_verification/dev/retrieval_queries.jsonl: 44 original + 44 no_match):
+  # persentil ke-90 skor top-1 no_match dev = 0,837. Di test: 92% no_match ditolak, 0% original tertolak.
+  # Ambang "terbaik" dev (0,848; 100%/0% di test) tidak dipakai karena parafrasa di data/demo_cases.txt
+  # mendapat skor 0,842-0,848 dan dev belum punya parafrasa; stance menjadi penyaring kedua.
+  # Cek di 44 parafrasa dev (draf LLM, belum diverifikasi): 42 lolos pada 0,837, hanya 36 pada 0,848.
+  # Untuk BM25 (retrieval_bm25.yaml) set null.
+  min_score: 0.837
+
+stance:
+  # premise = klaim terbantah teratas, hypothesis = teks input penuh (lihat orchestrator.input_claim).
+  # "similarity", path checkpoint lokal (mis. artifacts/checkpoints/stance_indonli), atau nama model HF.
+  # mDeBERTa zero-shot dipilih dari RQ4 (IndoNLI test_expert macro-F1 0,776 vs IndoBERT-IndoNLI 0,569);
+  # stance_final (tahap 2 BRIN) belum dilatih. Unduhan pertama dari HF ~1,1 GB.
+  model: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7
+  # true: nilai juga arah sebaliknya (premise = input, hypothesis = klaim) dan gabungkan
+  # (stance/predict.py combine_directions). Input yang lebih panjang dari judul klaim sering dinilai
+  # `unrelated` di arah 0002 saja. Uji 14 Nov 2026 pada ambang 0,837: parafrasa dev (draf LLM, 44)
+  # supports 41 -> 42; parafrasa test (100) 81 -> 88; kasus demo parafrasa/informal 4 -> 7 dari 9;
+  # supports palsu di no_match test tetap 7/100 sebelum ambang, 1 -> 0 sesudah ambang.
+  # Normalisasi teks informal (preprocessing/normalize.py) diuji juga dan tidak membantu.
+  bidirectional: true
+  device: auto

@@ -20,6 +20,31 @@ python -m indonesian_hoax_checker.retrieval.annotate_entities --checkpoint artif
 
 Semua premise dan gold diambil dari split `test` (artikel Komdigi sejak 1 Sep 2026), satu klaim per klaster near-duplicate. Untuk set tuning jalankan lagi dengan `--split dev --out-dir data/annotations/claim_verification/dev`.
 
+## Set dev (`dev/retrieval_queries.jsonl`)
+
+Dibuat 14 Nov 2026 untuk memilih ambang tolak retrieval tanpa menyentuh set test: 44 judul asli, 44 parafrasa, 44 `no_match` (sisa `data/no_match_queries.jsonl` yang tidak dipakai set test). Tidak ada `gold_claim_ids` atau `source_id` yang sama dengan set test.
+
+```
+python -m indonesian_hoax_checker.data.claim_verification_templates data/processed/refuted_claims/claims.jsonl --split dev --out-dir data/annotations/claim_verification/dev --valid-claims data/no_match_queries.jsonl --exclude-no-match-from data/annotations/claim_verification/retrieval_queries.jsonl --n-per-label 44
+```
+
+`dev/stance_pairs.jsonl` yang ikut dihasilkan perintah ini dihapus: model stance dipakai zero-shot, jadi belum ada yang dituning di dev.
+
+## Draf LLM (14 Nov 2026): wajib diperiksa manusia
+
+Supaya anotasi tidak dimulai dari kolom kosong, draf berikut ditulis LLM (Claude) dan ditandai field `draft_source`. Semua barisnya **masih `status: draft` dan `annotators: []`**:
+
+| File | Yang didraf | Jumlah |
+|---|---|---|
+| `stance_pairs.jsonl` | `hypothesis` untuk `supports` (parafrasa judul) | 100 |
+| `stance_pairs.jsonl` | `hypothesis` untuk `refutes` (sangkalan berdiri sendiri; menggantikan draf "Faktanya, klaim tersebut tidak benar" yang tidak menyebut isi klaim. Kalimat aslinya tetap ada di `fact_sentence` pada `claims.jsonl`) | 100 |
+| `retrieval_queries.jsonl` | `query` untuk `paraphrase` | 100 |
+| `dev/retrieval_queries.jsonl` | `query` untuk `paraphrase` | 44 |
+
+Draf ditulis hanya dari judul dan `claim_sentence`, tanpa menambah fakta. Cara memakainya: baca tiap baris, perbaiki bila artinya bergeser dari klaim, lalu isi `annotators` dan naikkan `status` (`annotated`, lalu `verified` oleh orang kedua). `draft_source` boleh dibiarkan sebagai catatan asal.
+
+Pengaman: `stance.dataset team` menolak baris tanpa dua annotator, dan notebook task 3 hanya memakai pasangan `verified`. Evaluasi retrieval tetap menilai kueri draf, tetapi mencatat jumlahnya di `n_draft_queries`; angka dengan `n_draft_queries > 0` bukan hasil anotasi final dan harus disebut begitu di laporan.
+
 ## `stance_pairs.jsonl`
 
 | Field | Diisi oleh | Keterangan |

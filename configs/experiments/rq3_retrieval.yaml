@@ -1,7 +1,7 @@
 # RQ3: Apakah mempersempit kandidat dengan entitas bersama membantu menemukan klaim terbantah?
 # Protokol: docs/experiment_protocol.md task 3a. Jalankan tiap run dengan retrieval/evaluate.py.
 queries: data/annotations/claim_verification/retrieval_queries.jsonl
-dev_queries: data/annotations/claim_verification/retrieval_queries_dev.jsonl   # opsional, untuk ambang
+dev_queries: data/annotations/claim_verification/dev/retrieval_queries.jsonl   # untuk ambang tolak (--rejection-threshold)
 reference_date: "2026-11-18"   # pembekuan test set; dasar hitung usia klaim
 top_k: 10
 metrics: [success@1, success@5, success@10, mrr, recall@10, rejection_rate_no_match, false_rejection_rate]

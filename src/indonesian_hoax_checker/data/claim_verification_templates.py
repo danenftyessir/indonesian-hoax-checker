@@ -143,10 +143,16 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--overwrite", action="store_true", help="timpa file yang sudah ada (anotasi hilang!)")
     p.add_argument("--prefer-short-no-match", action="store_true",
                    help="ambil kueri no_match terpendek (n_words) alih-alih acak; mengurangi confound panjang")
+    p.add_argument("--exclude-no-match-from", default=None,
+                   help="retrieval_queries.jsonl lain (mis. set test); source_id no_match di file itu tidak "
+                        "dipakai lagi, supaya set dev dan test tidak berbagi kueri")
     args = p.parse_args(argv)
 
     claims = [c for c in load_claims(args.claims) if c.get("split") == args.split]
     valid = list(read_jsonl(args.valid_claims)) if args.valid_claims else None
+    if valid is not None and args.exclude_no_match_from:
+        used = {q.get("source_id") for q in read_jsonl(args.exclude_no_match_from) if q.get("type") == "no_match"}
+        valid = [v for v in valid if v.get("id") not in used]
     out = Path(args.out_dir)
     targets = {
         out / "stance_pairs.jsonl": lambda: build_stance_pairs(claims, args.n_per_label, args.seed),

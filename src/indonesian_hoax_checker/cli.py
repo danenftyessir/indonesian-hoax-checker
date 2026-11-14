@@ -38,6 +38,16 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+CLARIFICATION_CHARS = 300  # klarifikasi Komdigi bisa satu paragraf penuh; teks lengkap ada di URL
+
+
+def _shorten(text: str, limit: int) -> str:
+    text = " ".join(text.split())
+    if len(text) <= limit:
+        return text
+    return text[:limit].rsplit(" ", 1)[0] + " ..."
+
+
 def format_result(res: PipelineResult, verbose: bool) -> str:
     lines: list[str] = []
     stub = lambda name: " [STUB]" if name in res.stubs else "" 
@@ -63,8 +73,12 @@ def format_result(res: PipelineResult, verbose: bool) -> str:
         else:
             lines.append(
                 f"Retrieval{stub('retrieve')}: {r['matched_claim']!r} "
-                f"(skor {r['similarity_score']:.2f}, {r.get('scorer', '?')}); klarifikasi: {r['clarification']}"
+                f"(skor {r['similarity_score']:.2f}, {r.get('scorer', '?')}); "
+                f"klarifikasi: {_shorten(r['clarification'] or '', CLARIFICATION_CHARS)}"
             )
+            url = (r.get("candidates") or [{}])[0].get("url")
+            if url:
+                lines.append(f"  bantahan resmi: {url}")
     if res.task in ("all", "stance") and want("stance"):
         if res.stance is None:
             lines.append(f"Stance{stub('stance')}: dilewati (tidak ada klaim terbantah untuk dibandingkan)")

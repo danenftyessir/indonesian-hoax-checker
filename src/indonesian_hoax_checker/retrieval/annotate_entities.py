@@ -90,7 +90,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--claim-text", default="claim", help="field klaim yang diprediksi (claim / claim_sentence)")
     p.add_argument("--queries", default=None, help="retrieval_queries.jsonl; field entities diisi di tempat")
     p.add_argument("--batch-size", type=int, default=64)
+    p.add_argument("--skip-claims", action="store_true",
+                   help="hanya anotasi --queries; claims_entities.jsonl tidak disentuh (mis. kueri baru ditulis)")
     args = p.parse_args(argv)
+    if args.skip_claims and not args.queries:
+        p.error("--skip-claims butuh --queries")
 
     predict = _load_predictor(args.checkpoint, args.device, args.claim_checkpoint)
     ckpt = Path(args.checkpoint).name
@@ -98,14 +102,15 @@ def main(argv: list[str] | None = None) -> int:
         ckpt += "+" + Path(args.claim_checkpoint).name
     report: dict[str, Any] = {"checkpoint": ckpt}
 
-    claims = list(read_jsonl(args.claims))
-    out_rows = [{"claim_id": c["claim_id"], args.claim_text: c.get(args.claim_text, "")} for c in claims]
-    annotate_rows(out_rows, args.claim_text, predict, args.batch_size)
-    for r in out_rows:
-        r.pop(args.claim_text)
-        r["ner_checkpoint"] = ckpt
-    write_jsonl(out_rows, args.claims_out)
-    report["claims"] = {"path": args.claims_out, **summarize(out_rows)}
+    if not args.skip_claims:
+        claims = list(read_jsonl(args.claims))
+        out_rows = [{"claim_id": c["claim_id"], args.claim_text: c.get(args.claim_text, "")} for c in claims]
+        annotate_rows(out_rows, args.claim_text, predict, args.batch_size)
+        for r in out_rows:
+            r.pop(args.claim_text)
+            r["ner_checkpoint"] = ckpt
+        write_jsonl(out_rows, args.claims_out)
+        report["claims"] = {"path": args.claims_out, **summarize(out_rows)}
 
     if args.queries:
         qrows = list(read_jsonl(args.queries))

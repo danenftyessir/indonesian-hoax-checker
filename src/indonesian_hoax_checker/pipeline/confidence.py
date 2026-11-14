@@ -17,7 +17,7 @@ REVIEW_THRESHOLD = 0.6
 
 
 class Verdict(TypedDict):
-    indication: str  # rendah / kemungkinan benar / hanya dari classifier / tinjauan manusia
+    indication: str  # kredibilitas rendah / hanya dari classifier / tinjauan manusia
     explanation: str
     needs_review: bool
 
@@ -39,10 +39,14 @@ def combine(
                 "needs_review": False,
             }
         if stance["label"] == "refutes":
+            # Bukan bukti kebenaran: di data/demo_cases.txt (14 Nov 2026) 5 dari 8 `refutes` keliru, yaitu klaim
+            # lain bertopik sama (diskon 80% vs 50%), satir, pesan yang justru mengulang hoaks, dan teks Inggris.
+            # Maka tidak dijadikan verdict otomatis; bantahan resmi ditampilkan untuk dicek manusia.
             return {
-                "indication": "kemungkinan benar",
-                "explanation": "Input menyangkal klaim yang sudah dibantah",
-                "needs_review": False,
+                "indication": "perlu tinjauan manusia",
+                "explanation": "Input tampak menyangkal klaim yang sudah dibantah; cocokkan dengan bantahan resmi "
+                               "sebelum menyimpulkan",
+                "needs_review": True,
             }
 
     if conf < REVIEW_THRESHOLD:
@@ -51,8 +55,11 @@ def combine(
             "explanation": classifier_note or f"Keyakinan classifier ({conf:.2f}) di bawah ambang {REVIEW_THRESHOLD}",
             "needs_review": True,
         }
+    # Klaim mirip bisa saja ditemukan retrieval tetapi stance menilainya tidak berkaitan
+    evidence = ("klaim terbantah yang mirip dinilai tidak berkaitan" if retrieval["matched_claim"] is not None
+                else "tidak ada klaim terbantah yang cocok")
     return {
         "indication": "terindikasi hoaks" if label == "hoax" else "tidak terindikasi hoaks",
-        "explanation": "Hanya dari classifier (skor belum dikalibrasi); tidak ada klaim terbantah yang cocok, sampaikan hati-hati",
+        "explanation": f"Hanya dari classifier (skor belum dikalibrasi); {evidence}, sampaikan hati-hati",
         "needs_review": False,
     }

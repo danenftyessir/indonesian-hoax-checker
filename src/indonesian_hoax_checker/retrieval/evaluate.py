@@ -66,8 +66,12 @@ def run_evaluation(
     is_no_match = {q["query_id"]: not q.get("gold_claim_ids") for q in queries}
     qtypes = {q["query_id"]: q.get("type", "unknown") for q in queries}
 
+    # Kueri berstatus draft = belum diperiksa manusia (mis. parafrasa draf LLM, field draft_source).
+    # Tetap dinilai, tetapi jumlahnya dicatat supaya angka tidak dilaporkan sebagai hasil anotasi final.
+    n_draft = sum(1 for q in queries if q.get("status") == "draft")
     result: dict[str, Any] = {
         "n_skipped_empty_queries": n_empty,
+        "n_draft_queries": n_draft,
         "overall": M.evaluate_rankings(run, gold),
         "by_type": M.by_query_type(run, gold, qtypes),
     }

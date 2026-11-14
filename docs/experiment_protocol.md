@@ -248,3 +248,67 @@ Keputusan:
 - **`subject` ditolak:** dev turun 0,14. Ini mengonfirmasi bahwa label seed set formal sering menyertakan subjek bukan entitas, berbeda dengan contoh 5 pedoman. Memperbaikinya butuh pelabelan ulang seed set (train silver dan dev/test), bukan aturan pasca-proses.
 
 Ringkasan model CLAIM terpasang (seed 42, aug3 + `time` + `punct`): dev 0,816, test 0,647 (dari 0,630 rata-rata model awal), tulisan tangan 0,459 (label diperbaiki; tidak lagi uji terpisah), sintetis 0,595.
+
+
+## Hasil task 3: penyambungan pipeline (2026-11-14)
+
+Keputusan yang diambil dari angka di bawah: [0013](decisions/0013-penyambungan-retrieval-dan-stance-di-pipeline.md). Semua dijalankan di CPU dengan checkpoint NER seed 42 (CLAIM versi augmentasi informal), E5 `multilingual-e5-base`, dan mDeBERTa zero-shot. Peringatan: kueri parafrasa di bawah adalah **draf LLM yang belum diverifikasi manusia**; angkanya indikatif.
+
+### Dampak model CLAIM baru ke basis klaim
+
+`retrieval.annotate_entities` dijalankan ulang. Entitas PER/ORG/LOC/TIME tidak berubah; `core_claim` berubah di 1.122 dari 3.048 klaim dan 70 dari 300 kueri.
+
+| | CLAIM lama | CLAIM baru |
+|---|---|---|
+| `core_claim` terisi (3.048 judul) | 2.987 | 2.825 |
+| `core_claim` satu kata | 156 | 478 |
+| `core_claim` = "Tautan" | 19 | 279 |
+
+Dari 437 judul yang diawali "Tautan", 286 mendapat `core_claim` satu kata.
+
+### Hypothesis stance: `core_claim` vs teks penuh
+
+| Set | Label benar | Teks penuh | `core_claim` |
+|---|---|---|---|
+| 100 kueri judul asli vs klaim gold | supports | 94 | 77 |
+| 100 kueri `no_match` vs top-1 BM25 | unrelated | 69 | 67 |
+| 100 kueri `no_match`: `supports` keliru | | 3 | 10 |
+
+### Ambang tolak retrieval (E5, cosine top-1)
+
+| Set | min | median | maks |
+|---|---|---|---|
+| dev judul asli (44) | 0,870 | 0,902 | 0,931 |
+| dev parafrasa (44, draf) | 0,829 | 0,871 | 0,906 |
+| dev `no_match` (44) | 0,815 | 0,826 | 0,847 |
+| test judul asli (100) | 0,866 | 0,897 | 0,943 |
+| test parafrasa (100, draf) | 0,813 | 0,868 | 0,915 |
+| test `no_match` (100) | 0,805 | 0,822 | 0,847 |
+
+| Ambang | Asal | `no_match` test ditolak | judul asli test tertolak | parafrasa dev lolos dan benar | parafrasa test lolos dan benar |
+|---|---|---|---|---|---|
+| 0,837 (dipakai) | persentil ke-90 `no_match` dev | 92% | 0% | 42/44 | 92/100 |
+| 0,848 | `best_rejection_threshold` di dev | 100% | 0% | 36/44 | 81/100 |
+
+BM25 dengan ambang dev (38,04): 97% `no_match` test ditolak, tetapi 21% judul asli ikut tertolak. success@1 parafrasa test: E5 0,95, BM25 0,98 (draf parafrasa dekat secara leksikal dengan judulnya; angka ini bukan pembanding final).
+
+### Stance dua arah
+
+A = arah 0002 (premise klaim terbantah, hypothesis input); "A atau B" = `combine_directions`. Hitungan `supports` yang benar, kecuali disebut lain.
+
+| Set | A | A atau B |
+|---|---|---|
+| judul asli test (100) | 94 | 94 |
+| judul asli dev (44) | 43 | 43 |
+| parafrasa dev, lolos ambang 0,837 (42) | 41 | 42 |
+| parafrasa test, lolos ambang 0,837 (92) | 81 | 88 |
+| `no_match` test: `supports` keliru, tanpa ambang / lolos ambang | 7 / 1 | 7 / 0 |
+| `no_match` dev: `supports` keliru, tanpa ambang | 3 | 2 |
+| `no_match` test: `refutes` keliru, tanpa ambang | 34 | 50 |
+| kasus demo parafrasa/informal yang seharusnya `supports` (9) | 4 | 7 |
+
+Normalisasi teks informal sebelum stance (`preprocessing/normalize.py`) tidak mengubah hasil secara berarti (kasus demo 4 → 4 di arah A, 6 → 5 di arah B) dan tidak dipakai. Naiknya `refutes` keliru tidak mengubah verdict karena `refutes` selalu diserahkan ke tinjauan manusia.
+
+### CLI pada `data/demo_cases.txt` (24 kasus)
+
+8 verdict otomatis "kredibilitas rendah", semuanya mengarah ke klaim Komdigi yang sesuai (termasuk 3 teks informal); 16 kasus "perlu tinjauan manusia". Kasus demo dipakai saat memilih aturan, jadi ini pemeriksaan kewajaran, bukan hasil evaluasi. Semua kasus demo di bawah 200 kata, jadi classifier dilewati di semuanya (`classification.min_words`); dengan checkpoint demo `indobert_seed13` terpasang, tidak ada tahap yang berjalan sebagai stub. Dua teks 200 kata lebih dari `ner_cli_test_colab.ipynb` dinilai `valid` (1,00) dan `hoax` (0,99).

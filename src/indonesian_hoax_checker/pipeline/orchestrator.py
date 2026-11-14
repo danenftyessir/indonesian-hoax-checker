@@ -31,9 +31,12 @@ class PipelineResult:
 
 
 def input_claim(text: str, ner: NERResult | None) -> str:
-    # Klaim input (hypothesis stance): core_claim bila ada, kalau kosong teks penuh
-    core = (ner["core_claim"] if ner else "").strip()
-    return core or text
+    # Klaim input (hypothesis stance) = teks penuh. Uji 14 Nov 2026 (mDeBERTa zero-shot, CLAIM seed 42
+    # dengan augmentasi informal): 100 kueri original vs premise gold -> supports benar 94 (teks penuh)
+    # vs 77 (core_claim); 100 kueri no_match vs top-1 BM25 -> unrelated 69 vs 67, supports keliru 3 vs 10.
+    # core_claim sering terpotong (mis. "Tautan"), jadi tidak dipakai. `ner` dipertahankan di signature.
+    del ner
+    return text
 
 
 def retrieval_query(text: str, ner: NERResult | None) -> str:
