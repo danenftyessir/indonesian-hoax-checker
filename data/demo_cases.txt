@@ -1,0 +1,58 @@
+# Kasus demo CLI, 8 kategori dari docs/experiment_protocol.md (Error analysis).
+# Format: baris "## <nomor>. <kategori>" membuka kategori; satu kasus per baris.
+# "\n" di dalam baris = ganti paragraf; "<kosong>" = input kosong. Baris "#" lain = komentar.
+# Kalimat ditulis tim (bukan kutipan dataset); kategori 1, 2, 3, dan 6 merujuk klaim basis Komdigi
+# (id di komentar) supaya hasil retrieval bisa dicek.
+#
+# Jalankan satu kasus: python -m indonesian_hoax_checker "<teks>" -v
+
+## 1. Klaim hoaks yang ada di basis Komdigi
+# 65704
+Video sebut Kemenag buka bantuan dana hibah Arab Saudi
+# 65458
+Aturan baru Pertamina batasi pembelian BBM di semua SPBU
+# 65177
+Air nanas panas dapat sembuhkan kanker dan penyakit berat
+
+## 2. Klaim sama dengan kata berbeda
+# 65704
+Kementerian Agama katanya membagikan dana hibah dari pemerintah Arab Saudi, silakan daftar lewat video ini.
+# 65458
+Mulai sekarang setiap SPBU hanya boleh menjual BBM dalam jumlah terbatas karena aturan baru dari Pertamina.
+# 65177
+Minum air rebusan nanas yang masih panas bisa menyembuhkan kanker, sebarkan ke keluarga.
+
+## 3. Klaim yang menyangkal hoaks
+# 65704
+Faktanya, Kementerian Agama tidak pernah membuka bantuan dana hibah dari Arab Saudi.
+# 65177
+Tidak benar bahwa air nanas panas dapat menyembuhkan kanker; belum ada bukti ilmiahnya.
+
+## 4. Klaim tanpa padanan di basis
+Pemerintah Kota Bandung akan membangun taman baca di setiap kelurahan pada tahun 2027.
+Beredar pesan bahwa Bank Indonesia akan mencetak uang pecahan Rp250.000 mulai Januari 2027.
+PLN mengumumkan diskon listrik 80 persen untuk semua pelanggan selama libur Natal.
+
+## 5. Teks informal (singkatan, kapital berantakan, typo)
+katanya kemenag bagi2 dana hibah arab saudi gaes, buruan daftar sblm ditutup!!!
+INFO PENTING!!! pertamina batasin beli bbm di smua spbu mulai bsk
+pemerintah stop bansos mulai bsk gaes!!! sebarin ke grup kluarga
+Kementrian Kesehtan bilang vaksin booster bikin mandul?? hati2 ya bun
+
+## 6. Perubahan kecil: tanggal/angka berbeda, negasi
+# 65458 dengan negasi
+Pertamina tidak membatasi pembelian BBM di SPBU.
+# Angka diubah
+Harga Pertalite naik menjadi Rp15 ribu per liter mulai 1 Desember 2026.
+Harga Pertalite naik menjadi Rp13 ribu per liter mulai 1 Desember 2026.
+
+## 7. Berita benar yang mirip hoaks (satir, kutipan politik)
+Presiden Prabowo Subianto meresmikan Bandara Dhoho di Kediri, Jawa Timur.
+Menteri Keuangan mengatakan pemerintah akan menjaga harga BBM subsidi tetap stabil hingga akhir tahun.
+BREAKING: kucing di Jakarta resmi dilantik jadi ketua RT karena warga capek rapat (satir).
+
+## 8. Input ekstrem: sangat pendek, beberapa paragraf, kosong, campur bahasa
+hoaks?
+<kosong>
+Beredar pesan berantai di WhatsApp.\nPesan itu mengeklaim Kominfo akan memutus internet nasional selama tiga hari mulai Senin.\nPengirim meminta pesan diteruskan ke sepuluh grup agar nomor tidak diblokir.
+Guys, the government says bansos will be stopped next month, beneran ga sih?
