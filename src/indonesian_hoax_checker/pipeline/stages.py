@@ -24,16 +24,18 @@ STUB_STAGES: set[str] = {"ner", "classify", "retrieve", "stance"}
 class NERStage:
     name = "ner"
 
-    # checkpoint=None -> entitas kosong
-    def __init__(self, checkpoint: str | None, device: str = "auto"):
+    # checkpoint=None -> entitas kosong (mode percobaan), sesuai docs/decisions/0005
+    # claim_checkpoint (opsional): model CLAIM terpisah, lihat NERPredictor
+    def __init__(self, checkpoint: str | None, device: str = "auto", claim_checkpoint: str | None = None):
         self.checkpoint = checkpoint
+        self.claim_checkpoint = claim_checkpoint
         self.device = device
         self._predictor = None
 
     @classmethod
     def from_config(cls, path: str = PIPELINE_CONFIG) -> "NERStage":
         cfg = yaml.safe_load(Path(path).read_text()).get("ner", {})
-        return cls(cfg.get("checkpoint"), cfg.get("device", "auto"))
+        return cls(cfg.get("checkpoint"), cfg.get("device", "auto"), cfg.get("claim_checkpoint"))
 
     @property
     def is_stub(self) -> bool:
@@ -48,7 +50,9 @@ class NERStage:
                 )
             from indonesian_hoax_checker.ner.predict import NERPredictor
 
-            self._predictor = NERPredictor(self.checkpoint, self.device)
+            if self.claim_checkpoint and not Path(self.claim_checkpoint).exists():
+                raise FileNotFoundError(f"Checkpoint CLAIM {self.claim_checkpoint} belum ada.")
+            self._predictor = NERPredictor(self.checkpoint, self.device, self.claim_checkpoint)
         return self._predictor
 
     def __call__(self, text: str) -> NERResult:

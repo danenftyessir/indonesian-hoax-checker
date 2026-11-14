@@ -1,0 +1,638 @@
+{
+ "komdigi-65439": {
+  "remove": [
+   "politik"
+  ]
+ },
+ "komdigi-65276": {
+  "entities": [
+   [
+    "ORG",
+    "kepolisian"
+   ],
+   [
+    "TIME",
+    "akhir September 2026"
+   ]
+  ],
+  "claim": "bakal melakukan razia ke rumah-rumah"
+ },
+ "komdigi-65784": {
+  "entities": [
+   [
+    "ORG",
+    "Satpol PP"
+   ]
+  ]
+ },
+ "komdigi-65438": {
+  "entities": [
+   [
+    "ORG",
+    "Pengadilan Negeri ( PN ) Surakarta"
+   ]
+  ]
+ },
+ "komdigi-65802": {
+  "entities": [
+   [
+    "ORG",
+    "Le Minerale"
+   ]
+  ],
+  "claim": "sebagai sponsor kegiatan aksi Deklarasi Sumpah Pemuda"
+ },
+ "komdigi-65780": {
+  "entities": [
+   [
+    "ORG",
+    "Koperasi Desa Merah Putih"
+   ]
+  ]
+ },
+ "komdigi-65308": {
+  "remove": [
+   "satu menit"
+  ],
+  "claim": "mengoperasikan unit kendaraan khusus untuk memadamkan kebakaran , termasuk membom air yang dikendalikan dari pesawat untuk memadamkan karhutla di Indonesia"
+ },
+ "komdigi-65409": {
+  "entities": [
+   [
+    "ORG",
+    "Perusahaan Listrik Negara ( PLN )"
+   ]
+  ]
+ },
+ "komdigi-65792": {
+  "entities": [
+   [
+    "ORG",
+    "Dispora DKI Jakarta"
+   ]
+  ]
+ },
+ "komdigi-65526": {
+  "entities": [
+   [
+    "PER",
+    "Gibran Rakabuming Raka"
+   ]
+  ],
+  "claim": "PERNYATAAN UNDUR DIRI WAPRES RI ( GIBRAN RAKABUMING )"
+ },
+ "komdigi-65757": {
+  "entities": [
+   [
+    "TIME",
+    "Oktober tahun 2026"
+   ]
+  ],
+  "claim": "mendapatkan Bantuan Langsung Tunai ( BLT ) Rp3 juta bagi ibu hamil"
+ },
+ "komdigi-65318": {
+  "entities": [
+   [
+    "ORG",
+    "Satuan Pelayanan Pemenuhan Gizi ( SPPG )"
+   ]
+  ],
+  "claim": "dapur Satuan Pelayanan Pemenuhan Gizi ( SPPG ) di Kabupaten Lombok Tengah , Provinsi Nusa Tenggara Barat ( NTB ) dibakar warga"
+ },
+ "komdigi-65558": {
+  "claim": "tautan pendaftaran Surat Izin Mengemudi ( SIM ) online gratis"
+ },
+ "komdigi-65349": {
+  "entities": [
+   [
+    "PER",
+    "Purbaya Yudhi Sadewa"
+   ]
+  ],
+  "claim": "akan membongkar kerugian sejumlah Badan Usaha Milik Negara ( BUMN ) , seperti PLN , Pertamina , dan Garuda Indonesia"
+ },
+ "komdigi-65365": {
+  "entities": [
+   [
+    "PER",
+    "Purbaya Yudhi Sadewa"
+   ]
+  ]
+ },
+ "komdigi-65362": {
+  "claim": "terbaring di ranjang rumah sakit"
+ },
+ "komdigi-65689": {
+  "claim": "membagikan gambar sampul Tempo"
+ },
+ "komdigi-65325": {
+  "claim": "sebuah kapal dalam kondisi terbalik di tengah laut"
+ },
+ "komdigi-65344": {
+  "entities": [
+   [
+    "PER",
+    "Joko Widodo"
+   ]
+  ]
+ },
+ "komdigi-65263": {
+  "claim": "bakal diguncang gempa dahsyat berkekuatan magnitudo 7,0 atau lebih"
+ },
+ "komdigi-65428": {
+  "entities": [
+   [
+    "PER",
+    "Purbaya Yudhi Sadewa"
+   ]
+  ]
+ },
+ "komdigi-65459": {
+  "entities": [
+   [
+    "ORG",
+    "Lapas Kelas IIA Cibinong"
+   ]
+  ],
+  "claim": "sedang mengevakuasi ratusan fasilitas mewah seperti AC , televisi , kipas , dan kulkas sebelum inspeksi mendadak Menteri Imigrasi dan Pemasyarakatan Agus Andrianto"
+ },
+ "komdigi-65601": {
+  "entities": [
+   [
+    "ORG",
+    "Bank Indonesia"
+   ],
+   [
+    "LOC",
+    "Republik Indonesia",
+    0
+   ],
+   [
+    "LOC",
+    "Republik Indonesia",
+    1
+   ]
+  ]
+ },
+ "komdigi-65510": {
+  "entities": [
+   [
+    "ORG",
+    "Direktorat Jenderal Pajak"
+   ]
+  ]
+ },
+ "komdigi-65497": {
+  "entities": [
+   [
+    "ORG",
+    "Badan Pengelola Statistik ( BPS )"
+   ]
+  ],
+  "claim": "mengatasnamakan Badan Pengelola Statistik ( BPS )"
+ },
+ "komdigi-65496": {
+  "claim": "menuliskan surat wasiat untuk keluarga"
+ },
+ "komdigi-65302": {
+  "entities": [
+   [
+    "ORG",
+    "Sekretariat Kabinet"
+   ]
+  ],
+  "claim": "memberikan jawaban tidak responsif terhadap unggahan Sekretariat Kabinet ( Setkab ) terhadap imbauan mengenai potensi dampak sebaran debu vulkanik Gunung Anak Krakatau"
+ },
+ "mafindo-train-2887": {
+  "remove": [
+   "Partai-partai politik"
+  ],
+  "entities": [
+   [
+    "ORG",
+    "Mahkamah Konstitusi"
+   ]
+  ],
+  "claim": "dianggap tersandera oleh berbagai kepentingan sehingga membuat mereka kehilangan kemandirian"
+ },
+ "mafindo-train-3609": {
+  "entities": [
+   [
+    "ORG",
+    "Koalisi Indonesia Maju"
+   ],
+   [
+    "ORG",
+    "KIM"
+   ]
+  ]
+ },
+ "mafindo-train-8676": {
+  "entities": [
+   [
+    "LOC",
+    "Tol Jagorawi"
+   ]
+  ]
+ },
+ "mafindo-train-12208": {
+  "remove": [
+   "pusat"
+  ],
+  "entities": [
+   [
+    "PER",
+    "Joko Widodo"
+   ],
+   [
+    "LOC",
+    "The Park"
+   ],
+   [
+    "TIME",
+    "Ahad malam"
+   ],
+   [
+    "TIME",
+    "12 Mei 2024"
+   ]
+  ]
+ },
+ "mafindo-train-19477": {
+  "entities": [
+   [
+    "LOC",
+    "Jakarta International Stadium"
+   ],
+   [
+    "LOC",
+    "JIS"
+   ]
+  ]
+ },
+ "mafindo-train-1788": {
+  "entities": [
+   [
+    "ORG",
+    "Kepolisian Negara Republik Indonesia"
+   ]
+  ]
+ },
+ "mafindo-train-8217": {
+  "entities": [
+   [
+    "PER",
+    "Bobby Nasution"
+   ]
+  ]
+ },
+ "mafindo-train-20114": {
+  "claim": "tengah bergimik menyusul keinginannya berkonsultasi dengan Ketua Umum PDI-P Megawati Soekarnoputri terkait penyusunan kabinet"
+ },
+ "mafindo-train-5183": {
+  "entities": [
+   [
+    "ORG",
+    "KPU"
+   ]
+  ]
+ },
+ "mafindo-train-12229": {
+  "entities": [
+   [
+    "PER",
+    "Tim Cook"
+   ],
+   [
+    "TIME",
+    "Rabu"
+   ],
+   [
+    "TIME",
+    "17 / 4"
+   ]
+  ]
+ },
+ "mafindo-train-18479": {
+  "claim": "menerapkan operasional khusus"
+ },
+ "mafindo-train-8196": {
+  "entities": [
+   [
+    "ORG",
+    "Dinas Kesehatan ( Dinkes ) Kota Palopo"
+   ]
+  ],
+  "claim": "klarifikasi Dinas Kesehatan ( Dinkes ) Kota Palopo , Sulawesi Selatan atas isu obat kedaluwarsa"
+ },
+ "mafindo-train-51": {
+  "claim": "dirinya measa berkecil hati karena arah bangsa ini tidak konseptual setelah merdeka"
+ },
+ "mafindo-train-9654": {
+  "entities": [
+   [
+    "ORG",
+    "KPU DKI Jakarta"
+   ]
+  ]
+ },
+ "mafindo-train-9623": {
+  "entities": [
+   [
+    "ORG",
+    "MA"
+   ]
+  ]
+ },
+ "mafindo-train-17129": {
+  "entities": [
+   [
+    "ORG",
+    "Dewan Pimpinan Daerah Partai Demokrasi Indonesia Perjuangan ( DPD PDIP ) Sumut"
+   ]
+  ]
+ },
+ "mafindo-train-4301": {
+  "entities": [
+   [
+    "ORG",
+    "Mahkamah Konstitusi"
+   ],
+   [
+    "TIME",
+    "Senin sore"
+   ],
+   [
+    "TIME",
+    "22 April 2024"
+   ]
+  ]
+ },
+ "mafindo-train-2592": {
+  "entities": [
+   [
+    "ORG",
+    "Brimob"
+   ]
+  ]
+ },
+ "mafindo-train-18805": {
+  "entities": [
+   [
+    "ORG",
+    "RSUD Karawang"
+   ]
+  ]
+ },
+ "mafindo-train-7468": {
+  "entities": [
+   [
+    "PER",
+    "Uu Saeful Mikdar"
+   ],
+   [
+    "LOC",
+    "Bekasi",
+    0
+   ]
+  ],
+  "claim": "mengumumkan dukungan mereka untuk pasangan Uu Saeful Mikdar dan Nurul Sumarheni dalam kontestasi Pilkada Kota Bekasi"
+ },
+ "mafindo-train-12025": {
+  "entities": [
+   [
+    "ORG",
+    "Mahkamah Kehormatan Dewan"
+   ],
+   [
+    "ORG",
+    "MKD DPR"
+   ]
+  ]
+ },
+ "mafindo-train-8386": {
+  "claim": "ketidakhadiran Presiden Terpilih Prabowo Subianto dalam acara Halalbihalal yang digelar Partai Keadilan Sejahtera atau PKS , merupakan sinyal penolakan untuk PKS yang ingin bergabung ke Koalisi Indonesia Maju atau KIM"
+ },
+ "komdigi-63546": {
+  "entities": [
+   [
+    "ORG",
+    "Perusahaan Listrk Negara ( PLN )"
+   ]
+  ]
+ },
+ "komdigi-63897": {
+  "entities": [
+   [
+    "ORG",
+    "Kepolisian Negara Republik Indonesia"
+   ]
+  ]
+ },
+ "komdigi-61505": {
+  "entities": [
+   [
+    "ORG",
+    "TikTok"
+   ]
+  ]
+ },
+ "komdigi-63759": {
+  "entities": [
+   [
+    "ORG",
+    "Bank Pembangunan Daerah ( BPD ) Daerah Istimewa Yogyakarta ( DIY )"
+   ]
+  ]
+ },
+ "komdigi-63547": {
+  "entities": [
+   [
+    "ORG",
+    "Koperasi Merah Putih",
+    1
+   ]
+  ],
+  "claim": "memberikan pinjaman tanpa bunga"
+ },
+ "komdigi-62428": {
+  "entities": [
+   [
+    "ORG",
+    "Dinas Pertanian Kabupaten Sukabumi"
+   ]
+  ]
+ },
+ "komdigi-61539": {
+  "entities": [
+   [
+    "ORG",
+    "TikTok"
+   ]
+  ]
+ },
+ "komdigi-63977": {
+  "entities": [
+   [
+    "PER",
+    "Purbaya Yudhi Sadewa"
+   ],
+   [
+    "ORG",
+    "Polri"
+   ]
+  ]
+ },
+ "komdigi-61418": {
+  "entities": [
+   [
+    "ORG",
+    "Badan Pelindungan Pekerja Migran Indonesia ( BP2MI )"
+   ]
+  ]
+ },
+ "komdigi-60859": {
+  "claim": "bantuan sosial sebesar Rp100 juta untuk Pekerja Migran Indonesia disertai tautan"
+ },
+ "komdigi-63254": {
+  "entities": [
+   [
+    "PER",
+    "Joko Widodo"
+   ]
+  ]
+ },
+ "komdigi-62364": {
+  "entities": [
+   [
+    "LOC",
+    "Kota Pangkalpinang"
+   ],
+   [
+    "LOC",
+    "Kepulauan Bangka Belitung"
+   ]
+  ]
+ },
+ "komdigi-63636": {
+  "entities": [
+   [
+    "PER",
+    "Purbaya Yudhi Sadewa"
+   ]
+  ],
+  "claim": "telah sepakat untuk menurunkan harga bahan bakar minyak ( BBM ) Pertalite yang semula Rp11.000 akan menjadi Rp7.000 per Liter"
+ },
+ "komdigi-63799": {
+  "entities": [
+   [
+    "LOC",
+    "Repubik Indonesia"
+   ],
+   [
+    "PER",
+    "Prabowo Subianto"
+   ]
+  ]
+ },
+ "mafindo-train-2841": {
+  "entities": [
+   [
+    "ORG",
+    "Koalisi Indonesia Maju ( KIM ) Plus"
+   ]
+  ]
+ },
+ "mafindo-train-2598": {
+  "claim": "industri kreatif dalam bidang game sangat potensial yang banyak digerakkan anak-anak milenial"
+ },
+ "mafindo-train-15434": {
+  "entities": [
+   [
+    "ORG",
+    "Kemenlu"
+   ],
+   [
+    "ORG",
+    "KBRI Dhaka"
+   ]
+  ]
+ },
+ "mafindo-train-22905": {
+  "entities": [
+   [
+    "LOC",
+    "RT 09 / RW 09"
+   ],
+   [
+    "TIME",
+    "Minggu"
+   ]
+  ],
+  "claim": "tidak bisa lagi berjemur dan berolahraga setelah satu-satunya akses jalan di RT 09 / RW 09 , Cililitan , Kramatjati , Jakarta Timur , ditembok atau ditutup total"
+ },
+ "mafindo-train-4113": {
+  "entities": [
+   [
+    "LOC",
+    "Ibu Kota Nusantara ( IKN )"
+   ]
+  ]
+ },
+ "mafindo-train-11345": {
+  "entities": [
+   [
+    "ORG",
+    "DPRD DKI Jakarta"
+   ],
+   [
+    "ORG",
+    "PDI-P"
+   ],
+   [
+    "ORG",
+    "Dinas Perhubungan ( Dishub ) DKI"
+   ]
+  ]
+ },
+ "mafindo-train-17810": {
+  "entities": [
+   [
+    "LOC",
+    "DKI Jakarta"
+   ],
+   [
+    "ORG",
+    "DPD PDIP Jakarta"
+   ]
+  ],
+  "claim": "merespons pertemuan Anies Baswedan dengan DPD PDIP Jakarta"
+ },
+ "mafindo-train-17553": {
+  "entities": [
+   [
+    "ORG",
+    "SD Negeri Sukasari"
+   ]
+  ]
+ },
+ "mafindo-train-1826": {
+  "entities": [
+   [
+    "PER",
+    "Joko Widodo"
+   ]
+  ]
+ },
+ "mafindo-train-14890": {
+  "claim": "angkat bicara perihal dugaan korupsi pengalokasian kuota tambahan haji khusus"
+ },
+ "mafindo-train-20285": {
+  "entities": [
+   [
+    "ORG",
+    "Dewan Perwakilan Daerah ( DPD ) Partai Gerindra Jawa Tengah"
+   ]
+  ]
+ }
+}

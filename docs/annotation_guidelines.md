@@ -74,6 +74,29 @@ Label Studio dijalankan lokal (`pipx install label-studio`, lalu `label-studio s
 4. Bila ada beberapa annotator, `kappa --export <ekspor> [<ekspor lain> ...]` dan `build --adjudicator` tetap tersedia.
 5. Catat setiap perubahan aturan di bagian *Riwayat* di bawah.
 
+### Set uji informal (30 kalimat, RQ1)
+
+Kalimat bergaya pesan berantai dan medsos, ditulis untuk proyek ini (bukan kutipan dataset): `data/annotations/ner/informal_sentences.jsonl`. Field `phenomena` mencatat gejala informal tiap kalimat (lowercase, kapital, singkatan, typo, tanda_baca, emoji, hashtag, campur_bahasa); dua kalimat sengaja tanpa CLAIM.
+
+**Status (2026-11-12):** ke-30 kalimat sudah dikoreksi mengikuti Bagian A, dan hasilnya ada di `informal_corrected.jsonl` (`quality: corrected`) serta sudah digabung ke `seed_adjudicated.jsonl` dan `seed_informal_test.conll`. Label otomatis vs koreksi: F1 0,35 (CLAIM 0,04, ORG 0,27, TIME 0,54, LOC 0,67, PER 0,67), hanya 3 dari 30 kalimat tidak berubah. Langkah 1-5 di bawah hanya perlu dijalankan bila ingin mengganti koreksi ini lewat Label Studio.
+
+1. Label otomatis sudah ditambahkan ke akhir `seed_auto.jsonl` (`auto --input informal_sentences.jsonl --checkpoint .../ner_indobert_seed42`, lalu digabung). Label otomatis di teks informal banyak yang salah; itu memang yang diukur RQ1.
+2. Impor `label_studio_informal_tasks.json` ke proyek Label Studio (bisa proyek yang sama), koreksi ke-30 kalimat sesuai Bagian A, ekspor ke `data/annotations/ner/export_informal_<tanggal>.json`.
+3. `report --export <ekspor informal>` untuk kualitas label otomatis di teks informal.
+4. `build --export <ekspor informal> --accept-auto`: dev/test tetap memakai label yang sudah diperiksa, informal dari ekspor. **Jangan jalankan `build --accept-auto` sebelum ke-30 kalimat dikoreksi**, karena kalimat informal yang tidak ada di ekspor akan ikut diterima apa adanya.
+5. `split` lalu menulis `seed_informal_test.conll`, yang dipakai `extra_eval` di config tahap 2.
+
+### Dua layer dan koreksi per kalimat
+
+Tiap kalimat menyimpan `entity_tags`, `claim_tags`, dan `tags` gabungan ([0012](decisions/0012-layer-entitas-dan-claim-terpisah.md)). Koreksi dev/test ditulis di `data/annotations/ner/review_patches.json` (per id: `claim` frasa token persis atau null, `entities` daftar `[label, frasa, n]`, `remove` daftar frasa) lalu diterapkan:
+
+```bash
+PYTHONPATH=src python -m indonesian_hoax_checker.ner.annotation patch
+PYTHONPATH=src python -m indonesian_hoax_checker.ner.annotation split
+```
+
+`split` menulis `seed_*.conll` (gabungan), `seed_entity_*.conll`, dan `seed_claim_*.conll`.
+
 **Batasan:** dengan satu annotator, tidak ada kesepakatan antar-annotator (kappa). Ini dicatat sebagai keterbatasan di laporan.
 
 ## Bagian B — Pasangan stance
@@ -98,3 +121,5 @@ Aturan:
 |---|---|---|
 | 1.0 | 2026-11-11 | Versi pertama |
 | 1.1 | 2026-11-12 | Label otomatis + koreksi satu annotator; seed 1.500 kalimat |
+| 1.2 | 2026-11-12 | Draf 30 kalimat uji informal dan alur koreksinya |
+| 1.3 | 2026-11-12 | Pemeriksaan ulang dev/test (74 kalimat dikoreksi), dua layer, aturan CLAIM diperbaiki |

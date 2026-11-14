@@ -29,6 +29,7 @@ from indonesian_hoax_checker.ner.dataset import write_conll
 from indonesian_hoax_checker.ner.labels import TYPES, get_spans
 from indonesian_hoax_checker.ner.metrics import entity_scores
 from indonesian_hoax_checker.ner.time_rules import add_time_tags
+from indonesian_hoax_checker.preprocessing.augment import TEST_PROBS, augment_corpus
 from indonesian_hoax_checker.preprocessing.tokenizer import tokenize
 
 ANNOTATION_DIR = Path("data/annotations/ner")
@@ -46,6 +47,61 @@ def write_jsonl(path, rows):
     Path(path).write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
 
 
+# ---------- Dua layer: entitas dan CLAIM ----------
+# Label gabungan (`tags`) memberi CLAIM prioritas, sehingga PER/ORG/LOC/TIME di dalam span CLAIM hilang.
+# Karena itu tiap kalimat juga menyimpan `entity_tags` (tanpa CLAIM, entitas lengkap) dan `claim_tags`
+# (hanya CLAIM), untuk melatih model entitas dan model CLAIM secara terpisah.
+
+def claim_layer(tags: list[str]) -> list[str]:
+    return [t if t.endswith("CLAIM") else "O" for t in tags]
+
+
+def entity_layer(tags: list[str]) -> list[str]:
+    return ["O" if t.endswith("CLAIM") else t for t in tags]
+
+
+def merge_layers(entity_tags: list[str], claim_tags: list[str]) -> list[str]:
+    return [c if c != "O" else e for e, c in zip(entity_tags, claim_tags)]
+
+
+def layers(row: dict) -> tuple[list[str], list[str]]:
+    if "entity_tags" in row and "claim_tags" in row:
+        return row["entity_tags"], row["claim_tags"]
+    return entity_layer(row["tags"]), claim_layer(row["tags"])
+
+
+# Tandai frasa pada satu layer; span lama yang bersinggungan dihapus utuh. label=None -> hapus saja.
+def set_span(tokens: list[str], tags: list[str], phrase: str, label: str | None, nth: int = 0) -> None:
+    words = phrase.split()
+    hits = [i for i in range(len(tokens) - len(words) + 1) if tokens[i:i + len(words)] == words]
+    if len(hits) <= nth:
+        raise ValueError(f"frasa tidak ditemukan: {phrase!r} di {' '.join(tokens)}")
+    start, end = hits[nth], hits[nth] + len(words)
+    for kind, a, b in get_spans(tags):
+        if a < end and start < b:
+            tags[a:b] = ["O"] * (b - a)
+    if label:
+        tags[start] = "B-" + label
+        for i in range(start + 1, end):
+            tags[i] = "I-" + label
+
+
+# patch = {"claim": "frasa" | null, "entities": [["PER", "frasa"] atau ["PER", "frasa", n], ...],
+#          "remove": ["frasa", ...]}; hanya kunci yang ada yang dijalankan. Hasil: layer baru + tags gabungan
+def apply_patch(row: dict, patch: dict) -> dict:
+    tokens = row["tokens"]
+    entity_tags, claim_tags = (list(t) for t in layers(row))
+    for phrase in patch.get("remove", []):
+        set_span(tokens, entity_tags, phrase, None)
+    for item in patch.get("entities", []):
+        set_span(tokens, entity_tags, item[1], item[0], item[2] if len(item) > 2 else 0)
+    if "claim" in patch:
+        claim_tags = ["O"] * len(tokens)
+        if patch["claim"]:
+            set_span(tokens, claim_tags, patch["claim"], "CLAIM")
+    return {**row, "entity_tags": entity_tags, "claim_tags": claim_tags, "tags": merge_layers(entity_tags, claim_tags)}
+
+
 # ---------- 1. Label otomatis ----------
 
 # predictor (opsional) = NERPredictor tahap 1 untuk PER/ORG/LOC; tanpa itu hanya TIME dan CLAIM
@@ -59,8 +115,9 @@ def auto_label(rows: list[dict], predictor=None) -> list[dict]:
         tags = [["O"] * len(w) for w in words]
     out = []
     for row, w, t in zip(rows, words, tags):
-        t = add_claim_tag(w, add_time_tags(w, t), row.get("title"))
-        out.append({**row, "tokens": w, "tags": t})
+        entity_tags = add_time_tags(w, t)  # PER/ORG/LOC/TIME tanpa CLAIM
+        merged = add_claim_tag(w, entity_tags, row.get("title"))
+        out.append({**row, "tokens": w, "tags": merged, "entity_tags": entity_tags, "claim_tags": claim_layer(merged)})
     return out
 
 
@@ -263,6 +320,11 @@ def main() -> None:
     p.add_argument("--adjudicator", help="Nama/email annotator yang dipakai saat anotasi berbeda")
     p.add_argument("--output", default=str(ANNOTATION_DIR / "seed_adjudicated.jsonl"))
 
+    p = sub.add_parser("patch", help="Terapkan koreksi per kalimat (review_patches.json) ke seed_adjudicated.jsonl")
+    p.add_argument("--patches", default=str(ANNOTATION_DIR / "review_patches.json"))
+    p.add_argument("--input", default=str(ANNOTATION_DIR / "seed_adjudicated.jsonl"))
+    p.add_argument("--output", default=str(ANNOTATION_DIR / "seed_adjudicated.jsonl"))
+
     p = sub.add_parser("split", help="Tulis seed set ke CoNLL per split")
     p.add_argument("--input", default=str(ANNOTATION_DIR / "seed_adjudicated.jsonl"))
     p.add_argument("--out-dir", default="data/processed/ner")
@@ -310,11 +372,31 @@ def main() -> None:
         if missing:
             print(f"PERINGATAN: {len(missing)} kalimat dev/test belum dikoreksi dan tidak dipakai: {missing[:10]} ...")
 
+    elif args.command == "patch":
+        patches = json.loads(Path(args.patches).read_text(encoding="utf-8"))
+        rows = read_jsonl(args.input)
+        ids = {r["id"] for r in rows}
+        unknown = [i for i in patches if i not in ids]
+        if unknown:
+            parser.error(f"id tidak ada di {args.input}: {unknown}")
+        rows = [{**apply_patch(r, patches[r["id"]]), "quality": "reviewed"} if r["id"] in patches else r for r in rows]
+        write_jsonl(args.output, rows)
+        print(f"{len(patches)} kalimat dikoreksi, hasil di {args.output}")
+
     elif args.command == "split":
         parts = split_rows(read_jsonl(args.input))
         for name, part in parts.items():
             if part or name != "informal_test":
-                write_conll(Path(args.out_dir) / f"seed_{name}.conll", [(r["tokens"], r["tags"]) for r in part])
+                out = Path(args.out_dir)
+                write_conll(out / f"seed_{name}.conll", [(r["tokens"], r["tags"]) for r in part])
+                write_conll(out / f"seed_entity_{name}.conll", [(r["tokens"], layers(r)[0]) for r in part])
+                write_conll(out / f"seed_claim_{name}.conll", [(r["tokens"], layers(r)[1]) for r in part])
+        # Uji informal sintetis (RQ1): test seed dijadikan gaya medsos (huruf kecil, singkatan, typo, "!!!"),
+        # label ikut. Lebih besar (jumlah kalimat test) daripada 30 kalimat informal tulisan tangan, tetapi buatan.
+        out = Path(args.out_dir)
+        for layer, pick in (("", lambda r: r["tags"]), ("entity_", lambda r: layers(r)[0]), ("claim_", lambda r: layers(r)[1])):
+            sentences = [(r["tokens"], pick(r)) for r in parts["test"]]
+            write_conll(out / f"seed_{layer}test_sim_informal.conll", augment_corpus(sentences, seed=2026, probs=TEST_PROBS))
         print(", ".join(f"seed {name} {len(part)}" for name, part in parts.items()))
 
 

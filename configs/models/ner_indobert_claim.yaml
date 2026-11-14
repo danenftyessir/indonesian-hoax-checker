@@ -1,0 +1,22 @@
+# Tahap 2 layer CLAIM: hanya span CLAIM (label lain = O), lanjut dari model NERGrit.
+# Prediksi PER/ORG/LOC/TIME model ini diabaikan; entitas diambil dari ner_indobert_entity.yaml.
+name: ner_indobert_claim
+model: indobert
+model_name: indobenchmark/indobert-base-p1
+init_from: artifacts/checkpoints/ner/ner_indobert_seed{seed}
+data:
+  train: data/processed/ner/seed_claim_train.conll
+  dev: data/processed/ner/seed_claim_dev.conll
+  test: data/processed/ner/seed_claim_test.conll
+extra_eval:
+  seed_informal_test: data/processed/ner/seed_claim_informal_test.conll
+  seed_sim_informal_test: data/processed/ner/seed_claim_test_sim_informal.conll   # test seed versi medsos sintetis
+lowercase: false
+max_length: 256
+lr: 0.00003
+weight_decay: 0.01
+warmup_ratio: 0.1
+batch_size: 16
+epochs: 20
+patience: 5
+device: auto

@@ -85,3 +85,37 @@ def test_error_analysis_categories():
     assert report["per_tipe"]["LOC"]["terlewat"] == 1
     assert report["salah_deteksi"] == {"ORG": 1}
     assert report["salah_tipe_menjadi"] == {"ORG": {"LOC": 1}}
+
+
+def test_entity_query_follows_pipeline_rule():
+    from indonesian_hoax_checker.ner.query_impact import entity_query
+
+    res = {"core_claim": "akan memberikan pelatihan militer",
+           "entities": [{"text": "TNI", "label": "ORG"}, {"text": "Bandung", "label": "LOC"},
+                        {"text": "besok", "label": "TIME"}, {"text": "pelatihan", "label": "ORG"}]}
+    # TIME tidak ikut, entitas yang sudah ada di core_claim tidak diulang
+    assert entity_query("teks", res) == "akan memberikan pelatihan militer TNI Bandung"
+    assert entity_query("teks asli", {"core_claim": "", "entities": []}) == "teks asli"
+
+
+def test_boosted_normalizes_scores_and_adds_bonus():
+    import numpy as np
+
+    from indonesian_hoax_checker.ner.entity_use import boosted
+
+    scores = np.array([10.0, 5.0, 0.0])
+    shares = np.array([0.0, 1.0, 0.0])
+    assert boosted(scores, shares, 0.0).tolist() == [1.0, 0.5, 0.0]
+    assert boosted(scores, shares, 0.1).tolist() == [1.0, 0.6, 0.0]
+    assert boosted(np.zeros(2), np.array([1.0, 0.0]), 0.5).tolist() == [0.5, 0.0]
+
+
+def test_rq1_variants_load_and_reference_stage2_models():
+    import yaml
+
+    plan = yaml.safe_load(open("configs/experiments/rq1_ner.yaml"))
+    assert len(plan["variants"]) == 7
+    for path in plan["variants"]:
+        cfg = load_config(path)
+        assert cfg["name"].startswith("rq1_") and cfg["init_from"].endswith("seed{seed}")
+        assert "seed_sim_informal_test" in cfg["extra_eval"]

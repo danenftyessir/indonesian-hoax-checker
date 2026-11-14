@@ -1,16 +1,15 @@
-# RQ1: apakah normalisasi dan augmentasi teks informal memperbaiki ekstraksi entitas?
-# Semua varian dinilai pada NERGrit test (formal) dan nergrit_test_informal (informal sintetis),
-# 3 seed per varian. Dijalankan lewat notebooks/02_ner/rq1_ner_colab.ipynb.
-# Setelah seed set CLAIM/TIME ada, RQ1 diulang di atas model tahap 2.
+# RQ1: apakah normalisasi dan augmentasi teks informal memperbaiki model NER tahap 2?
+# Dua layer (docs/decisions/0012): CLAIM (kelemahan utama di teks informal, F1 0,10) dan entitas.
+# Semua varian dilatih dari model NERGrit (tahap 1), 3 seed, dan dinilai pada:
+#   seed test (formal, 100 kalimat), seed_informal_test (30 kalimat informal tulisan tangan),
+#   seed_sim_informal_test (seed test versi medsos sintetis), dan nergrit_test (hanya layer entitas).
+# Dijalankan lewat notebooks/02_ner/rq1_ner_colab.ipynb.
 seeds: [13, 42, 2026]
 variants:
-  - configs/experiments/rq1/bilstm_crf_base.yaml
-  - configs/experiments/rq1/bilstm_crf_norm.yaml
-  - configs/experiments/rq1/bilstm_crf_aug.yaml
-  - configs/experiments/rq1/bilstm_crf_norm_aug.yaml
-  - configs/experiments/rq1/bilstm_crf_lower_nerp.yaml
-  - configs/experiments/rq1/indobert_base.yaml
-  - configs/experiments/rq1/indobert_norm.yaml
-  - configs/experiments/rq1/indobert_aug.yaml
-  - configs/experiments/rq1/indobert_norm_aug.yaml
-  - configs/experiments/rq1/indobert_lower_nerp.yaml
+  - configs/experiments/rq1/claim_base.yaml
+  - configs/experiments/rq1/claim_norm.yaml
+  - configs/experiments/rq1/claim_aug.yaml
+  - configs/experiments/rq1/claim_aug3.yaml
+  - configs/experiments/rq1/entity_base.yaml
+  - configs/experiments/rq1/entity_norm.yaml
+  - configs/experiments/rq1/entity_aug.yaml

@@ -1,0 +1,23 @@
+# Tahap 2 layer entitas: PER, ORG, LOC, TIME (tanpa CLAIM), lanjut dari model NERGrit.
+# Entitas di dalam kalimat klaim tetap berlabel, tidak tertimpa CLAIM. Dipakai bersama ner_indobert_claim.yaml.
+name: ner_indobert_entity
+model: indobert
+model_name: indobenchmark/indobert-base-p1
+init_from: artifacts/checkpoints/ner/ner_indobert_seed{seed}
+data:
+  train: data/processed/ner/seed_entity_train.conll
+  dev: data/processed/ner/seed_entity_dev.conll
+  test: data/processed/ner/seed_entity_test.conll
+extra_eval:
+  nergrit_test: data/processed/ner/nergrit_test.conll
+  seed_informal_test: data/processed/ner/seed_entity_informal_test.conll
+  seed_sim_informal_test: data/processed/ner/seed_entity_test_sim_informal.conll   # test seed versi medsos sintetis
+lowercase: false
+max_length: 256
+lr: 0.00003
+weight_decay: 0.01
+warmup_ratio: 0.1
+batch_size: 16
+epochs: 20
+patience: 5
+device: auto

@@ -29,9 +29,6 @@ class PipelineResult:
     stubs: list[str] = field(default_factory=list) 
 
 
-RETRIEVAL_ENTITY_LABELS = ("PER", "ORG", "LOC")
-
-
 def input_claim(text: str, ner: NERResult | None) -> str:
     # Klaim input (hypothesis stance): core_claim bila ada, kalau kosong teks penuh
     core = (ner["core_claim"] if ner else "").strip()
@@ -39,15 +36,12 @@ def input_claim(text: str, ner: NERResult | None) -> str:
 
 
 def retrieval_query(text: str, ner: NERResult | None) -> str:
-    # Aturan kueri dari Danendra: core_claim + entitas PER/ORG/LOC; bila core_claim kosong, teks penuh
-    core = (ner["core_claim"] if ner else "").strip()
-    if not core:
-        return text
-    extra: list[str] = []
-    for e in ner["entities"]:
-        if e["label"] in RETRIEVAL_ENTITY_LABELS and e["text"] not in core and e["text"] not in extra:
-            extra.append(e["text"])
-    return " ".join([core, *extra])
+    # Kueri retrieval = teks penuh. Eksperimen NER (docs/experiment_protocol.md, query_impact dan
+    # entity_use): core_claim + entitas, filter keras, dan entitas di akhir kueri tidak menaikkan BM25
+    # dibanding teks penuh (success@1 0,841). Entitas tetap diteruskan ke run_retrieve untuk
+    # filter opsional (entity_filter di config, default false). `ner` dipertahankan di signature.
+    del ner
+    return text
 
 
 def run_pipeline(text: str, task: str = "all") -> PipelineResult:

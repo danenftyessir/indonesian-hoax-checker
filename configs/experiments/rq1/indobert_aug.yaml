@@ -1,7 +1,0 @@
-# RQ1 indobert: Augmentasi: +1 salinan informal data train
-base: configs/models/ner_indobert.yaml
-name: rq1_indobert_aug
-augment:
-  copies: 1
-extra_eval:
-  nergrit_test_informal: data/processed/ner/nergrit_test_informal.conll

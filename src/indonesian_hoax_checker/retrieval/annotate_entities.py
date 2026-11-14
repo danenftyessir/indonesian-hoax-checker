@@ -2,12 +2,15 @@
 # Keputusan 0005: entitas untuk task 3 adalah PREDIKSI NER, bukan gold. Pemilik: Danendra.
 #
 #   python -m indonesian_hoax_checker.retrieval.annotate_entities \
-#       --checkpoint artifacts/checkpoints/ner/ner_indobert_seed42 \
+#       --checkpoint artifacts/checkpoints/ner/ner_indobert_entity_seed42 \
+#       --claim-checkpoint artifacts/checkpoints/ner/ner_indobert_claim_seed42 \
 #       --claims data/processed/refuted_claims/claims.jsonl \
 #       --claims-out data/processed/refuted_claims/claims_entities.jsonl \
 #       --queries data/annotations/claim_verification/retrieval_queries.jsonl
 #
-# Checkpoint: ekstrak ner_results.zip (Drive tim hasil_training/ner_*) di root repo.
+# Checkpoint: ekstrak ner_checkpoints_seed42.zip (Drive tim hasil_training/ner_*) ke
+# artifacts/checkpoints/ner/. Layer entitas dan CLAIM terpisah (docs/decisions/0012); tanpa
+# --claim-checkpoint, core_claim tidak diprediksi.
 # Keluaran claims_entities.jsonl: {claim_id, entities, core_claim, ner_checkpoint}; dibaca
 # retrieval/search.py (load_corpus_entities). Kueri: field `entities` diisi di tempat, field lain utuh.
 
@@ -68,17 +71,19 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _load_predictor(checkpoint: str, device: str) -> PredictBatch:
+def _load_predictor(checkpoint: str, device: str, claim_checkpoint: str | None = None) -> PredictBatch:
     # impor di sini: ner.predict menarik torch/transformers/seqeval, tidak perlu untuk tes unit
     from indonesian_hoax_checker.pipeline.stages import NERStage
 
-    stage = NERStage(checkpoint, device)
+    stage = NERStage(checkpoint, device, claim_checkpoint)
     return stage.run_batch
 
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Prediksi entitas NER untuk basis klaim dan kueri.")
     p.add_argument("--checkpoint", required=True, help="folder checkpoint NER (IndoBERT atau BiLSTM-CRF)")
+    p.add_argument("--claim-checkpoint", default=None,
+                   help="folder checkpoint NER layer CLAIM (untuk core_claim); kosong = core_claim tidak diisi")
     p.add_argument("--device", default="auto")
     p.add_argument("--claims", default="data/processed/refuted_claims/claims.jsonl")
     p.add_argument("--claims-out", default="data/processed/refuted_claims/claims_entities.jsonl")
@@ -87,8 +92,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--batch-size", type=int, default=64)
     args = p.parse_args(argv)
 
-    predict = _load_predictor(args.checkpoint, args.device)
+    predict = _load_predictor(args.checkpoint, args.device, args.claim_checkpoint)
     ckpt = Path(args.checkpoint).name
+    if args.claim_checkpoint:
+        ckpt += "+" + Path(args.claim_checkpoint).name
     report: dict[str, Any] = {"checkpoint": ckpt}
 
     claims = list(read_jsonl(args.claims))

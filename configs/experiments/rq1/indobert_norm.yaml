@@ -1,6 +1,0 @@
-# RQ1 indobert: Normalisasi teks informal di semua split
-base: configs/models/ner_indobert.yaml
-name: rq1_indobert_norm
-normalize: true
-extra_eval:
-  nergrit_test_informal: data/processed/ner/nergrit_test_informal.conll
