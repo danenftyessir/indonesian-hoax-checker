@@ -147,7 +147,9 @@ Cara membaca:
 - Waktu: sekitar 254 detik per epoch pada T4, sekitar 41 menit untuk 3 seed.
 - Model tidak disimpan (`--save-dir` tidak dipakai); skor per seed tersimpan di folder hasil Drive untuk kalibrasi dan analisis galat. Probe klaim pendek tidak dijalankan pada run ini.
 
-**Kalibrasi dan analisis galat IndoBERT pada Mendeley 600** (`classification/calibrate_analyze.py` pada skor 3 seed; dihitung lokal 12 Nov 2026; kalibrasi dipasang di dalam CV leave-one-topic-out, rata-rata antar seed; ambang 0,5):
+**Model demo CLI** (seed 13, 3 epoch, pengaturan sama, checkpoint disimpan; run terpisah di Colab T4 pada 14 Nov 2026; angka disalin dari output notebook): Mafindo test macro-F1 0,985 / AUROC 0,997; Mendeley 600 0,538 / 0,607; Mendeley tanpa penanda bantahan 0,475 / 0,513; probe klaim pendek (300 klaim) macro-F1 0,576 / AUROC 0,934. Angka ini sejalan dengan run 3 seed. Pada probe, AUROC 0,934 lebih rendah daripada AUROC jumlah kata saja (sekitar 0,97, hoaks rata-rata 8 kata vs valid 20 kata), jadi probe tidak membuktikan bahwa model menilai klaim pendek dengan baik; macro-F1 0,576 menunjukkan keputusan pada threshold 0,5 buruk untuk teks sependek itu.
+
+**Kalibrasi dan analisis error IndoBERT pada dataset Mendeley** (`classification/calibrate_analyze.py` pada skor 3 seed; dihitung lokal 12 Nov 2026; kalibrasi dipasang di dalam CV leave-one-topic-out, rata-rata antar seed; ambang 0,5):
 
 | | ECE (10 bin) | Brier | Macro-F1 | AUROC | Hoaks terprediksi |
 |---|---|---|---|---|---|
