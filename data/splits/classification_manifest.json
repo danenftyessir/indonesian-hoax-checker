@@ -1,0 +1,71 @@
+{
+  "frozen_at": "2026-11-14T11:35:37+00:00",
+  "git_commit": "626709df16262ab59e60c0404215ce20c3bcbd56",
+  "note": "hash saja, tanpa teks pihak ketiga; bekukan ulang pada 18 Nov 2026 dan catat tanggal di sini",
+  "files": [
+    {
+      "file": "data/raw/mendeley/600 news with valid hoax label.csv",
+      "bytes": 1335120,
+      "sha256": "8c16f1e6258f3a828381c0e4b12ecee6730111c7c5be95ef5e70725201631f67"
+    },
+    {
+      "file": "data/raw/mendeley/600 news labelling process.xlsx",
+      "bytes": 88152,
+      "sha256": "ab2b269cf5df8068a11a8e823b8db55ca5f15671da7ea41699848fda0816c28a"
+    },
+    {
+      "file": "data/manifests/mendeley_manifest.csv",
+      "bytes": 168883,
+      "sha256": "5a40bacb98bba91bf15955e0171cbc62faf9d87e79f8a7c789e92234b1ac1f68"
+    },
+    {
+      "file": "results/mendeley_baseline_repeated.json",
+      "bytes": 2331,
+      "sha256": "79ec661937b64acb380523683909c871eca620d3eeec4f54348d4efaac444c85"
+    },
+    {
+      "file": "outputs/cross_dataset.json",
+      "bytes": 4325,
+      "sha256": "733f3ed6df07b95e124c2c6861346aa461f186b970e9df71a60a42c2d6253d05"
+    },
+    {
+      "file": "outputs/indobert_results/scores_seed13.npz",
+      "bytes": 17644,
+      "sha256": "24bc847c4eb4100b526d5e0d77a0eb9e0071f7df1daa2b06756075ac4a26573f"
+    },
+    {
+      "file": "outputs/indobert_results/scores_seed42.npz",
+      "bytes": 19086,
+      "sha256": "f74248891e7183a3c13e0c06f6acfff3b63a7d2f718f2a13bfaf8e48a5e981a5"
+    },
+    {
+      "file": "outputs/indobert_results/scores_seed2026.npz",
+      "bytes": 17890,
+      "sha256": "19b8c078861f8bfffb6dc49b3b2c65c8042b0eb71f3b62f1c27afb85157927e3"
+    },
+    {
+      "file": "data/interim/classifier/no_match_queries.jsonl",
+      "bytes": 44185,
+      "sha256": "e6183e80b0a83a3af89fda4373661089639481dfbdd536e0ab9924bb5ddcec42"
+    }
+  ],
+  "mendeley": {
+    "n": 600,
+    "hoax": 230,
+    "text_sha1_digest": "3863e3418b4803e555c66cb3edb2bda0cdbeb68431ec8c365f222a2ea5dbc958"
+  },
+  "mafindo": {
+    "dataset": "umn-cyber/mafindo-2024",
+    "hf_revision": "e9608acb2db7d70945679b2f91854cb0ebce66fe",
+    "train": {
+      "n": 23641,
+      "hoax_rate": 0.473,
+      "sorted_row_sha1_digest": "6579459c8ab0bb844aabf97705609f6453f5d43d826c57357425273a95bf791c"
+    },
+    "test": {
+      "n": 5911,
+      "hoax_rate": 0.4864,
+      "sorted_row_sha1_digest": "114efe8c3abc3e803998d35c1965226852dd8741e990225e30088885b8c80a00"
+    }
+  }
+}

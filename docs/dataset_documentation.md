@@ -10,7 +10,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 |---|---|---|---|
 | 1 NER | NERGrit train (1.672, cased) + seed ±1.350 (label otomatis); NERP dedup (6.397) hanya varian lowercase | NERGrit valid (209), seed dev 50 | Seed test 100 (dikoreksi manual) + 30 kalimat informal |
 | 2 Klasifikasi | Mafindo-2024 train (23.641) | Mafindo-2024 test (5.911) | Mendeley 600 (label mayoritas penilai: 230 hoaks / 370 valid), 300 klaim pendek, 200 klaim Komdigi netral |
-| 3a Retrieval | — (BM25 / embedding siap pakai) | Basis Komdigi 3.043 klaim | 300 kueri: 100 judul asli, 100 parafrasa, 100 tanpa padanan |
+| 3a Retrieval | — (BM25 / embedding siap pakai) | Basis Komdigi 3.048 klaim | 300 kueri: 100 judul asli, 100 parafrasa, 100 tanpa padanan |
 | 3b Stance | IndoNLI train (10.330) + pasangan BRIN | IndoNLI val (2.197), test_expert (2.984) | 300 pasangan beranotasi tim |
 
 ## Dataset utama
@@ -19,7 +19,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 
 - **URL:** https://www.kaggle.com/datasets/ireddragonicy/indonesian-hoax-news-dataset
 - **Lisensi:** Apache 2.0. Diperbarui harian dari API resmi Komdigi.
-- **Ukuran:** 3.043 record (versi 396, 10 Nov 2026), artikel 28 Des 2024 – 10 Nov 2026. File `komdigi_hoaks.csv`, 10,07 MB. **(cek ulang)**
+- **Ukuran:** 3.048 record (versi 396, diunduh 11 Nov 2026), artikel 27 Des 2024 – 9 Nov 2026. File `komdigi_hoaks.csv`, 10,07 MB (10.073.039 byte). Jumlah baris dan rentang tanggal dicek ulang dari salinan di Drive tim (3.048 baris, tanggal terawal 2024-12-27, terakhir 2026-11-09).
 - **Kolom:** `id`, `url`, `title`, `slug`, `published_at`, `view_count`, `excerpt`, `body_html`, `body_text`, `main_image_url`, `category`, `tags`, `topics`.
 - **Catatan:**
   - Angka "15.000 record" di deskripsi tidak berlaku lagi (sisa portal lama kominfo.go.id).
@@ -64,6 +64,34 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 
 - Judul duplikat di train: 141. Judul yang muncul di train dan test: 74 (sekitar 1,3% test).
 - Macro-F1 pada test: hanya bendera artefak 0,822; TF-IDF isi 0,984; TF-IDF isi dengan nama media, "[SALAH)", URL dan hashtag dibuang 0,984.
+- **Proporsi hoaks menurut jumlah kata di Mafindo train** (dihitung di Colab, 14 Nov 2026; kolom `content`):
+
+  | Jumlah kata | Baris | Proporsi hoaks |
+  |---|---|---|
+  | < 30 | 4.933 | 0,974 |
+  | 30–59 | 3.398 | 0,959 |
+  | 60–99 | 1.924 | 0,913 |
+  | 100–199 | 2.583 | 0,401 |
+  | 200–399 | 8.027 | 0,031 |
+  | 400+ | 2.774 | 0,026 |
+
+  Di bawah 100 kata hampir semua baris berlabel hoaks, jadi panjang teks saja sudah memprediksi label. Pada uji CLI, model IndoBERT menjawab hoaks (skor 0,99–1,00) untuk semua kalimat pendek dan juga untuk paragraf netral 37 kata (skor 0,90). Paragraf netral 112 kata (di zona 100–199 kata) masih dinilai hoaks dengan skor 0,82 (satu contoh output). Karena itu pipeline melewati classifier untuk teks kurang dari 200 kata (`classification.min_words` di `configs/pipeline.yaml`), yaitu di bawah titik tempat proporsi hoaks turun menjadi sekitar 3%.
+- **Evaluasi terkendali panjang** (`classification/length_controlled_eval.py`, skor IndoBERT 3 seed rata-rata, dihitung di Colab 14 Nov 2026; AUROC di dalam rentang jumlah kata yang sama, CI bootstrap 95%):
+
+  | Kata | n | Hoaks | Valid | AUROC dalam rentang |
+  |---|---|---|---|---|
+  | < 30 | 1.237 | 1.216 | 21 | 0,961 [0,924; 0,990] |
+  | 30–59 | 914 | 885 | 29 | 0,928 [0,883; 0,967] |
+  | 60–99 | 467 | 407 | 60 | 0,971 [0,947; 0,989] |
+  | 100–199 | 682 | 259 | 423 | 0,999 [0,997; 1,000] |
+  | 200–399 | 1.946 | 77 | 1.869 | 1,000 [1,000; 1,000] |
+  | 400+ | 664 | 30 | 634 | 1,000 [0,999; 1,000] |
+
+  AUROC keseluruhan 0,998; AUROC jumlah kata saja 0,966. Di dalam domain Mafindo, model memisahkan kelas bahkan di rentang pendek, jadi ia tidak hanya memakai panjang (sinyal lain seperti sumber dan gaya ikut berperan). Namun rentang di bawah 100 kata hanya memuat 110 artikel valid dari 2.618 (4%), sehingga AUROC di sana bertumpu pada sedikit contoh valid, dan model hampir tidak pernah melihat teks pendek yang valid. Itulah alasan gerbang panjang: untuk teks pendek model berada di luar cakupan data latih, bukan karena ia terbukti mengabaikan isi.
+
+  Pada Mendeley (semua artikel ≥ 79 kata), AUROC di dalam kuartil panjang hanya 0,54–0,61 (CI mencakup 0,5 pada tiap kuartil); AUROC jumlah kata saja 0,547. Jadi kegagalan lintas-sumber di Mendeley bukan soal panjang, melainkan pergeseran sumber dan domain.
+
+  Uji CLI dengan gerbang 200 kata (dua paragraf buatan sendiri, bukan data uji): paragraf netral 200 kata dinilai valid (skor 0,98) dan paragraf pesan berantai bergaya hoaks 215 kata dinilai hoaks (skor 0,99). Ini dua contoh, bukan evaluasi.
 - Pembersihan artefak tidak mengubah skor, jadi sinyalnya tersebar di kosakata dan gaya penulisan. Skor 0,984 mengukur pembedaan sumber/gaya, bukan kebenaran klaim, dan tidak boleh dibaca sebagai kemampuan mendeteksi hoaks. Selalu laporkan berdampingan dengan hasil lintas-sumber ([0001](decisions/0001-sumber-kelas-valid.md)).
 - Angka tunggal tanpa CI atau seed; belum ada pengecekan manual baris.
 
@@ -128,6 +156,50 @@ Cara membaca:
 - Per topik (n≈50, bising), proporsi hoaks terprediksi berkisar 0,00–0,74 sementara proporsi sebenarnya 0,20–0,54. Ini mengarah ke prediksi yang mengikuti topik/kosakata, tetapi belum diuji lebih lanjut.
 - Pembanding dalam Mendeley sendiri: TF-IDF + LR dengan leave-one-topic-out mencapai 0,636, di atas 0,569 dari model Mafindo.
 - Batas: satu kali jalan, ambang tetap 0,5, hanya `content`. Mendeley (artikel 2014–2018 dari banyak situs) dan Mafindo (2024, kelas hoaks berisi artikel cek fakta) berbeda domain dan waktu.
+
+**Fine-tuning IndoBERT-p1 pada Mafindo-2024** (`classification/finetune_indobert.py`, Colab T4, 11–12 Nov 2026; 3 seed 13/42/2026, 3 epoch, batch 32, lr 2e-5, panjang maks 256 token, hanya `content`, 10% train sebagai validasi untuk memilih epoch, ambang 0,5; rata-rata ± sd antar seed; angka disalin dari keluaran notebook Colab):
+
+| Tes | TF-IDF + LR (satu kali jalan) | IndoBERT-p1 (3 seed) |
+|---|---|---|
+| Mafindo test, macro-F1 | 0,984 [0,981; 0,987] | 0,987 ± 0,001 |
+| Mafindo test, AUROC | 0,997 | 0,998 ± 0,000 |
+| Mendeley 600, macro-F1 | 0,569 [0,529; 0,612] | 0,524 ± 0,029 |
+| Mendeley 600, AUROC | 0,597 | 0,585 ± 0,010 |
+| Mendeley tanpa penanda bantahan (n=280), macro-F1 | 0,493 | 0,459 ± 0,031 |
+| Mendeley tanpa penanda bantahan, AUROC | 0,493 | 0,498 ± 0,007 |
+| Mendeley dengan penanda bantahan (n=320), macro-F1 | 0,551 | 0,526 ± 0,012 |
+
+- Fine-tuning tidak memperbaiki transfer lintas-sumber. Skor in-domain hampir sama dengan baseline (0,987 vs 0,984), dan pada Mendeley IndoBERT tidak lebih baik; pada irisan tanpa penanda bantahan AUROC 0,498 ± 0,007, setara tebakan acak. Model yang lebih kuat mempelajari pembeda sumber/gaya yang sama dengan model TF-IDF.
+- Perbandingan memakai satu pengaturan hiperparameter (belum disetel), teks dipotong 256 token, dan TF-IDF hanya satu kali jalan. Selisih TF-IDF vs IndoBERT pada Mendeley tidak diuji secara berpasangan, jadi jangan dibaca sebagai bukti IndoBERT lebih buruk.
+- Recall hoaks pada Mendeley sangat bervariasi antar seed (0,429 ± 0,120): keputusan pada ambang 0,5 tidak stabil di luar domain.
+- Waktu: sekitar 254 detik per epoch pada T4, sekitar 41 menit untuk 3 seed.
+- Model tidak disimpan (`--save-dir` tidak dipakai); skor per seed tersimpan di folder hasil Drive untuk kalibrasi dan analisis galat. Probe klaim pendek tidak dijalankan pada run ini.
+
+**Model demo CLI** (seed 13, 3 epoch, pengaturan sama, checkpoint disimpan; run terpisah di Colab T4 pada 14 Nov 2026; angka disalin dari output notebook): Mafindo test macro-F1 0,985 / AUROC 0,997; Mendeley 600 0,538 / 0,607; Mendeley tanpa penanda bantahan 0,475 / 0,513; probe klaim pendek (300 klaim) macro-F1 0,576 / AUROC 0,934. Angka ini sejalan dengan run 3 seed. Pada probe, AUROC 0,934 lebih rendah daripada AUROC jumlah kata saja (sekitar 0,97, hoaks rata-rata 8 kata vs valid 20 kata), jadi probe tidak membuktikan bahwa model menilai klaim pendek dengan baik; macro-F1 0,576 menunjukkan keputusan pada threshold 0,5 buruk untuk teks sependek itu.
+
+**Kalibrasi dan analisis error IndoBERT pada dataset Mendeley** (`classification/calibrate_analyze.py` pada skor 3 seed; dihitung lokal 12 Nov 2026; kalibrasi dipasang di dalam CV leave-one-topic-out, rata-rata antar seed; ambang 0,5):
+
+| | ECE (10 bin) | Brier | Macro-F1 | AUROC | Hoaks terprediksi |
+|---|---|---|---|---|---|
+| Skor mentah | 0,411 | 0,415 | 0,524 | 0,585 | 39,5% |
+| Temperature scaling | 0,080 | 0,244 | 0,524 | 0,537 | 39,5% |
+| Platt scaling | 0,016 | 0,237 | 0,381 | 0,515 | 0,0% |
+
+- Skor mentah sangat terlalu yakin di luar domain (ECE 0,41). Setelah dikalibrasi, ECE turun, tetapi Brier ≈ 0,24 sama dengan menebak proporsi hoaks (230/600) untuk semua item, sekitar 0,236. Platt scaling akhirnya memprediksi "valid" untuk semua item (macro-F1 0,381 = baseline mayoritas). Kalibrasi jujur menunjukkan skor tidak membawa informasi di luar domain; kalibrasi tidak memperbaiki akurasi.
+- AUROC berubah pada temperature scaling karena T berbeda per topik yang ditahan, lalu digabung; dalam satu topik urutan skor tetap.
+- Skor mentah sebaiknya tidak ditampilkan sebagai "keyakinan" di demo.
+
+Galat (skor rata-rata 3 seed, ambang 0,5): TP 103, FN 127, FP 144, TN 226 (recall hoaks 0,45; presisi 0,42).
+
+| Kategori | Temuan |
+|---|---|
+| Topik (n=50 tiap topik, bising) | Hoaks terprediksi 2–43 dari 50 (sebenarnya 10–27). Terbanyak salah: ikan lele (galat 0,66; 28 FP), tusuk jari (0,54; 24 FP), iPhone 6 (0,58). Peserta aksi 212: hanya 2 terprediksi hoaks dari 15 hoaks (15 FN). |
+| Tingkat sumber | Media arus utama galat 0,34 (n=174); domain lain 0,49 (n=426), mendekati tebakan. |
+| Penanda bantahan | Tanpa penanda (n=280): galat 0,54 (FN 93, FP 59). Dengan penanda (n=320): galat 0,37 (FN 34, FP 85). Dari 256 artikel valid ber-penanda, 85 (33%) dinilai hoaks. |
+| Kesepakatan penilai | Suara bulat (n=422): galat 0,41; tidak bulat (n=178): 0,54. |
+| Panjang artikel (kuartil) | Galat 0,42–0,48; korelasi Spearman skor dengan jumlah kata 0,07; AUROC jumlah kata saja 0,55. Panjang bukan pendorong utama di sini. |
+
+Prediksi mengikuti topik lebih dari kebenaran (pola yang sama dengan model TF-IDF), tetapi dengan n≈50 per topik ini baru indikasi. Penanda bantahan adalah heuristik kata yang kasar.
 
 ### IndoNLI — stance (pra-latih)
 

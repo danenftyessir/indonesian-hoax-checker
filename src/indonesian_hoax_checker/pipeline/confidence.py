@@ -1,5 +1,7 @@
 # Penggabungan hasil klasifikasi, retrieval, dan stance menjadi indikasi kredibilitas
-# Ambang dipilih di fase 4 (RQ5)
+# threshold dipilih di fase 4 (RQ5)
+# Skor retrieval tidak dibatasi (BM25) atau -1..1 (cosine), jadi similarity_score tidak dibandingkan antar-scorer
+# Confidence stance masih softmax mentah (belum dikalibrasi); dianggap setara skor mentah sampai kalibrasi
 
 from __future__ import annotations
 
@@ -24,6 +26,7 @@ def combine(
     classification: ClassificationResult,
     retrieval: RetrievalResult,
     stance: StanceResult | None,
+    classifier_note: str | None = None,
 ) -> Verdict:
     label, conf = classification["label"], classification["confidence"]
 
@@ -45,11 +48,11 @@ def combine(
     if conf < REVIEW_THRESHOLD:
         return {
             "indication": "perlu tinjauan manusia",
-            "explanation": f"Keyakinan classifier ({conf:.2f}) di bawah ambang {REVIEW_THRESHOLD}",
+            "explanation": classifier_note or f"Keyakinan classifier ({conf:.2f}) di bawah ambang {REVIEW_THRESHOLD}",
             "needs_review": True,
         }
     return {
         "indication": "terindikasi hoaks" if label == "hoax" else "tidak terindikasi hoaks",
-        "explanation": "Hanya dari classifier; tidak ada klaim terbantah yang cocok dan sampaikan hati-hati",
+        "explanation": "Hanya dari classifier (skor belum dikalibrasi); tidak ada klaim terbantah yang cocok, sampaikan hati-hati",
         "needs_review": False,
     }

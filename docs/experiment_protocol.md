@@ -45,7 +45,7 @@ Selisih besar antara in-domain dan lintas-sumber = bukti konfound sumber ([0001]
 |---|---|
 | Baseline | BM25 |
 | Model kuat | Sentence embedding siap pakai + cosine (kandidat: multilingual-e5); dipilih setelah uji 100 kueri pertama |
-| Data | Basis 3.043 klaim Komdigi; 300 kueri (100 judul asli, 100 parafrasa manual, 100 tanpa padanan) |
+| Data | Basis 3.048 klaim Komdigi (versi 396); 300 kueri (100 judul asli, 100 parafrasa manual, 100 tanpa padanan) |
 | Metrik | success@10, MRR, Recall@k; recall terhadap usia klaim; ketepatan menolak kueri tanpa padanan |
 | Ablasi | Dengan/tanpa penyempitan kandidat berbasis entitas |
 

@@ -26,7 +26,23 @@ class PipelineResult:
     retrieval: RetrievalResult | None = None
     stance: StanceResult | None = None
     verdict: Verdict | None = None
-    stubs: list[str] = field(default_factory=list) 
+    stubs: list[str] = field(default_factory=list)
+    classifier_skipped: bool = False  # teks terlalu pendek; classifier tidak dipakai
+
+
+def input_claim(text: str, ner: NERResult | None) -> str:
+    # Klaim input (hypothesis stance): core_claim bila ada, kalau kosong teks penuh
+    core = (ner["core_claim"] if ner else "").strip()
+    return core or text
+
+
+def retrieval_query(text: str, ner: NERResult | None) -> str:
+    # Kueri retrieval = teks penuh. Eksperimen NER (docs/experiment_protocol.md, query_impact dan
+    # entity_use): core_claim + entitas, filter keras, dan entitas di akhir kueri tidak menaikkan BM25
+    # dibanding teks penuh (success@1 0,841). Entitas tetap diteruskan ke run_retrieve untuk
+    # filter opsional (entity_filter di config, default false). `ner` dipertahankan di signature.
+    del ner
+    return text
 
 
 def run_pipeline(text: str, task: str = "all") -> PipelineResult:
@@ -46,15 +62,20 @@ def run_pipeline(text: str, task: str = "all") -> PipelineResult:
     # Klasifikasi dan retrieval dijalankan paralel
     with ThreadPoolExecutor(max_workers=2) as pool:
         f_cls = pool.submit(stages.run_classify, text, res.ner) if need_classify else None
-        f_ret = pool.submit(stages.run_retrieve, text, res.ner) if need_retrieve else None
+        f_ret = pool.submit(stages.run_retrieve, retrieval_query(text, res.ner), res.ner) if need_retrieve else None
         res.classification = f_cls.result() if f_cls else None
         res.retrieval = f_ret.result() if f_ret else None
 
     if task in ("all", "stance"):
-        res.stance = stages.run_stance(text, res.retrieval)
+        res.stance = stages.run_stance(input_claim(text, res.ner), res.retrieval)
+
+    note = None
+    if res.classification is not None and "classify" not in stages.STUB_STAGES and stages.classifier_too_short(text):
+        res.classifier_skipped = True
+        note = f"Teks terlalu pendek untuk classifier (kurang dari {stages.classifier_min_words()} kata); perlu tinjauan manusia"
 
     if task == "all":
-        res.verdict = combine(res.classification, res.retrieval, res.stance)
+        res.verdict = combine(res.classification, res.retrieval, res.stance, note)
 
     ran = {
         "ner": res.ner is not None,
