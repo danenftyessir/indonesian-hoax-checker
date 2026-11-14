@@ -64,6 +64,34 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 
 - Judul duplikat di train: 141. Judul yang muncul di train dan test: 74 (sekitar 1,3% test).
 - Macro-F1 pada test: hanya bendera artefak 0,822; TF-IDF isi 0,984; TF-IDF isi dengan nama media, "[SALAH)", URL dan hashtag dibuang 0,984.
+- **Proporsi hoaks menurut jumlah kata di Mafindo train** (dihitung di Colab, 14 Nov 2026; kolom `content`):
+
+  | Jumlah kata | Baris | Proporsi hoaks |
+  |---|---|---|
+  | < 30 | 4.933 | 0,974 |
+  | 30–59 | 3.398 | 0,959 |
+  | 60–99 | 1.924 | 0,913 |
+  | 100–199 | 2.583 | 0,401 |
+  | 200–399 | 8.027 | 0,031 |
+  | 400+ | 2.774 | 0,026 |
+
+  Di bawah 100 kata hampir semua baris berlabel hoaks, jadi panjang teks saja sudah memprediksi label. Pada uji CLI, model IndoBERT menjawab hoaks (skor 0,99–1,00) untuk semua kalimat pendek dan juga untuk paragraf netral 37 kata (skor 0,90). Paragraf netral 112 kata (di zona 100–199 kata) masih dinilai hoaks dengan skor 0,82 (satu contoh output). Karena itu pipeline melewati classifier untuk teks kurang dari 200 kata (`classification.min_words` di `configs/pipeline.yaml`), yaitu di bawah titik tempat proporsi hoaks turun menjadi sekitar 3%.
+- **Evaluasi terkendali panjang** (`classification/length_controlled_eval.py`, skor IndoBERT 3 seed rata-rata, dihitung di Colab 14 Nov 2026; AUROC di dalam rentang jumlah kata yang sama, CI bootstrap 95%):
+
+  | Kata | n | Hoaks | Valid | AUROC dalam rentang |
+  |---|---|---|---|---|
+  | < 30 | 1.237 | 1.216 | 21 | 0,961 [0,924; 0,990] |
+  | 30–59 | 914 | 885 | 29 | 0,928 [0,883; 0,967] |
+  | 60–99 | 467 | 407 | 60 | 0,971 [0,947; 0,989] |
+  | 100–199 | 682 | 259 | 423 | 0,999 [0,997; 1,000] |
+  | 200–399 | 1.946 | 77 | 1.869 | 1,000 [1,000; 1,000] |
+  | 400+ | 664 | 30 | 634 | 1,000 [0,999; 1,000] |
+
+  AUROC keseluruhan 0,998; AUROC jumlah kata saja 0,966. Di dalam domain Mafindo, model memisahkan kelas bahkan di rentang pendek, jadi ia tidak hanya memakai panjang (sinyal lain seperti sumber dan gaya ikut berperan). Namun rentang di bawah 100 kata hanya memuat 110 artikel valid dari 2.618 (4%), sehingga AUROC di sana bertumpu pada sedikit contoh valid, dan model hampir tidak pernah melihat teks pendek yang valid. Itulah alasan gerbang panjang: untuk teks pendek model berada di luar cakupan data latih, bukan karena ia terbukti mengabaikan isi.
+
+  Pada Mendeley (semua artikel ≥ 79 kata), AUROC di dalam kuartil panjang hanya 0,54–0,61 (CI mencakup 0,5 pada tiap kuartil); AUROC jumlah kata saja 0,547. Jadi kegagalan lintas-sumber di Mendeley bukan soal panjang, melainkan pergeseran sumber dan domain.
+
+  Uji CLI dengan gerbang 200 kata (dua paragraf buatan sendiri, bukan data uji): paragraf netral 200 kata dinilai valid (skor 0,98) dan paragraf pesan berantai bergaya hoaks 215 kata dinilai hoaks (skor 0,99). Ini dua contoh, bukan evaluasi.
 - Pembersihan artefak tidak mengubah skor, jadi sinyalnya tersebar di kosakata dan gaya penulisan. Skor 0,984 mengukur pembedaan sumber/gaya, bukan kebenaran klaim, dan tidak boleh dibaca sebagai kemampuan mendeteksi hoaks. Selalu laporkan berdampingan dengan hasil lintas-sumber ([0001](decisions/0001-sumber-kelas-valid.md)).
 - Angka tunggal tanpa CI atau seed; belum ada pengecekan manual baris.
 
@@ -147,7 +175,9 @@ Cara membaca:
 - Waktu: sekitar 254 detik per epoch pada T4, sekitar 41 menit untuk 3 seed.
 - Model tidak disimpan (`--save-dir` tidak dipakai); skor per seed tersimpan di folder hasil Drive untuk kalibrasi dan analisis galat. Probe klaim pendek tidak dijalankan pada run ini.
 
-**Kalibrasi dan analisis galat IndoBERT pada Mendeley 600** (`classification/calibrate_analyze.py` pada skor 3 seed; dihitung lokal 12 Nov 2026; kalibrasi dipasang di dalam CV leave-one-topic-out, rata-rata antar seed; ambang 0,5):
+**Model demo CLI** (seed 13, 3 epoch, pengaturan sama, checkpoint disimpan; run terpisah di Colab T4 pada 14 Nov 2026; angka disalin dari output notebook): Mafindo test macro-F1 0,985 / AUROC 0,997; Mendeley 600 0,538 / 0,607; Mendeley tanpa penanda bantahan 0,475 / 0,513; probe klaim pendek (300 klaim) macro-F1 0,576 / AUROC 0,934. Angka ini sejalan dengan run 3 seed. Pada probe, AUROC 0,934 lebih rendah daripada AUROC jumlah kata saja (sekitar 0,97, hoaks rata-rata 8 kata vs valid 20 kata), jadi probe tidak membuktikan bahwa model menilai klaim pendek dengan baik; macro-F1 0,576 menunjukkan keputusan pada threshold 0,5 buruk untuk teks sependek itu.
+
+**Kalibrasi dan analisis error IndoBERT pada dataset Mendeley** (`classification/calibrate_analyze.py` pada skor 3 seed; dihitung lokal 12 Nov 2026; kalibrasi dipasang di dalam CV leave-one-topic-out, rata-rata antar seed; ambang 0,5):
 
 | | ECE (10 bin) | Brier | Macro-F1 | AUROC | Hoaks terprediksi |
 |---|---|---|---|---|---|

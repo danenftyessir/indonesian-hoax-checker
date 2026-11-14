@@ -1,9 +1,6 @@
-# Tahap-tahap pipeline. Model dimuat saat pertama dipakai, supaya import dan --help tetap cepat.
-# Tahap yang modelnya belum ada tetap mengembalikan nilai netral bentuk common/schemas.py,
-# sehingga pipeline bisa dijalankan sebagian (daftar tahap stub ada di STUB_STAGES).
-#
-# NER: NERStage membaca checkpoint dari configs/pipeline.yaml. Bila folder checkpoint belum ada
-# (belum mengekstrak ner_results.zip dari Drive hasil_training), run_ner memakai stub.
+# Skrip tahapan dalam pipeline
+
+# NER: NERStage membaca checkpoint dari configs/pipeline.yaml, Bila folder checkpoint belum ada
 
 from __future__ import annotations
 
@@ -27,7 +24,7 @@ STUB_STAGES: set[str] = {"ner", "classify", "retrieve", "stance"}
 class NERStage:
     name = "ner"
 
-    # checkpoint=None -> mode stub (selalu entitas kosong), sesuai docs/decisions/0005
+    # checkpoint=None -> entitas kosong (mode percobaan), sesuai docs/decisions/0005
     # claim_checkpoint (opsional): model CLAIM terpisah, lihat NERPredictor
     def __init__(self, checkpoint: str | None, device: str = "auto", claim_checkpoint: str | None = None):
         self.checkpoint = checkpoint
@@ -49,7 +46,7 @@ class NERStage:
             if not Path(self.checkpoint).exists():
                 raise FileNotFoundError(
                     f"Checkpoint NER {self.checkpoint} belum ada. Unduh ner_results.zip dari Drive hasil_training "
-                    "dan ekstrak di root repo, atau set ner.checkpoint: null di configs/pipeline.yaml untuk mode stub."
+                    "dan ekstrak di root repo, atau set ner.checkpoint: null di configs/pipeline.yaml untuk mode percobaan"
                 )
             from indonesian_hoax_checker.ner.predict import NERPredictor
 
@@ -71,7 +68,7 @@ _ner_stage: NERStage | None = None
 
 
 def _get_ner_stage() -> NERStage | None:
-    """NERStage dari config bila checkpoint-nya ada di disk; None (= stub) bila tidak."""
+    # NERStage dari config bila checkpoint-nya ada
     global _ner_stage
     if _ner_stage is None:
         try:
@@ -94,18 +91,58 @@ def run_ner(text: str) -> NERResult:
     return {"entities": [], "core_claim": first}
 
 
+_classifier = None
+
+
+def _get_classifier():
+    # HoaxClassifier dari config bila checkpoint-nya ada
+    global _classifier
+    if _classifier is None:
+        try:
+            cfg = yaml.safe_load(Path(PIPELINE_CONFIG).read_text()).get("classification", {})
+        except (OSError, yaml.YAMLError):
+            return None
+        checkpoint = cfg.get("checkpoint")
+        if not checkpoint or not Path(checkpoint).exists():
+            return None
+        from indonesian_hoax_checker.classification.predict import HoaxClassifier
+
+        _classifier = HoaxClassifier(checkpoint, cfg.get("max_length", 256), cfg.get("device", "auto"))
+    return _classifier
+
+
+def classifier_min_words() -> int:
+    # Batas kata minimum untuk classifier (classification.min_words di configs/pipeline.yaml); 0 = tanpa batas
+    # model dilatih pada artikel Mafindo; pada teks pendek ia menjawab "hoax" hampir selalu
+    try:
+        cfg = yaml.safe_load(Path(PIPELINE_CONFIG).read_text()).get("classification", {})
+    except (OSError, yaml.YAMLError):
+        return 0
+    return int(cfg.get("min_words", 0) or 0)
+
+
+def classifier_too_short(text: str) -> bool:
+    n = classifier_min_words()
+    return bool(n) and len(text.split()) < n
+
+
 def run_classify(text: str, ner: NERResult | None = None) -> ClassificationResult:
-    # Stub: 0.5 = tidak tahu. Skor asli harus terkalibrasi (docs/experiment_protocol.md)
+    clf = _get_classifier()
+    if clf is not None:
+        STUB_STAGES.discard("classify")
+        if classifier_too_short(text):
+            return {"label": "valid", "confidence": 0.5}  # tidak tahu; diteruskan ke tinjauan manusia
+        return clf(text)
     return {"label": "valid", "confidence": 0.5}
 
 
 def run_retrieve(text: str, ner: NERResult) -> RetrievalResult:
-    # Stub: tidak ada klaim terbantah yang cocok
+    # Tidak ada klaim terbantah yang cocok
     return {"matched_claim": None, "clarification": None, "similarity_score": None}
 
 
 def run_stance(text: str, retrieval: RetrievalResult) -> StanceResult | None:
-    # premise = klaim terbantah, hypothesis = klaim input (docs/decisions/0002)
+    # premise = klaim terbantah, hypothesis = klaim input
     # Tanpa klaim cocok tidak ada pasangan yang bisa dinilai
     if retrieval["matched_claim"] is None:
         return None

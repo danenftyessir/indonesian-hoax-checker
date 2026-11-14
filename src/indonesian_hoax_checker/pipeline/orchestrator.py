@@ -26,7 +26,8 @@ class PipelineResult:
     retrieval: RetrievalResult | None = None
     stance: StanceResult | None = None
     verdict: Verdict | None = None
-    stubs: list[str] = field(default_factory=list) 
+    stubs: list[str] = field(default_factory=list)
+    classifier_skipped: bool = False  # teks terlalu pendek; classifier tidak dipakai
 
 
 def input_claim(text: str, ner: NERResult | None) -> str:
@@ -68,8 +69,13 @@ def run_pipeline(text: str, task: str = "all") -> PipelineResult:
     if task in ("all", "stance"):
         res.stance = stages.run_stance(input_claim(text, res.ner), res.retrieval)
 
+    note = None
+    if res.classification is not None and "classify" not in stages.STUB_STAGES and stages.classifier_too_short(text):
+        res.classifier_skipped = True
+        note = f"Teks terlalu pendek untuk classifier (kurang dari {stages.classifier_min_words()} kata); perlu tinjauan manusia"
+
     if task == "all":
-        res.verdict = combine(res.classification, res.retrieval, res.stance)
+        res.verdict = combine(res.classification, res.retrieval, res.stance, note)
 
     ran = {
         "ner": res.ner is not None,

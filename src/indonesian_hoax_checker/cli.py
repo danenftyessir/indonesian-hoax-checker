@@ -50,9 +50,12 @@ def format_result(res: PipelineResult, verbose: bool) -> str:
     if res.ner is not None and want("ner"):
         ents = ", ".join(f"{e['text']}/{e['label']}" for e in res.ner["entities"]) or "(tidak ada)"
         lines.append(f"NER{stub('ner')}: entitas={ents}; klaim inti={res.ner['core_claim']!r}")
-    if res.classification is not None and want("classify"):
+    if res.classification is not None and want("classify") and res.classifier_skipped:
+        lines.append("Klasifikasi: dilewati (teks terlalu pendek untuk classifier)")
+    elif res.classification is not None and want("classify"):
         c = res.classification
-        lines.append(f"Klasifikasi{stub('classify')}: {c['label']} (skor {c['confidence']:.2f})")
+        lines.append(f"Klasifikasi{stub('classify')}: {c['label']} (skor {c['confidence']:.2f}"
+                         f"{'' if 'classify' in res.stubs else ', belum dikalibrasi'})")
     if res.retrieval is not None and want("retrieve"):
         r = res.retrieval
         if r["matched_claim"] is None:
