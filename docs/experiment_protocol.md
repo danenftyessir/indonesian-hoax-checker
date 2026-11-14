@@ -125,3 +125,42 @@ Skrip: `python -m indonesian_hoax_checker.ner.entity_use`. Kueri dan emas sama s
 Diagnostik filter: dari 291 kueri test yang punya entitas, klaim emas tetap lolos filter hanya pada 243 (83%). Pada 48 kueri entitas kueri tidak beririsan dengan entitas judul emas (judul pendek sering tidak memuat nama yang sama, atau NER memberi bentuk berbeda), sehingga klaim emas tersingkir. 60 kueri test tidak punya entitas sama sekali.
 
 Kesimpulan awal untuk BM25 + kueri kalimat Komdigi: entitas NER **tidak menaikkan** retrieval. Filter keras menurunkan success@1 sembilan poin, boost tidak berpengaruh berarti, dan menambah entitas ke kueri menurunkan success@1. Pembanding polos sudah kuat (0,841), jadi ruang perbaikannya kecil. Yang masih perlu diuji: scorer embedding, kueri parafrasa dan pesan berisik, serta filter dengan pencocokan entitas yang lebih longgar (alias, singkatan).
+
+## Hasil RQ1: normalisasi dan augmentasi (2026-11-13)
+
+Notebook `rq1_ner_colab.ipynb`, 7 varian × 3 seed (13, 42, 2026), IndoBERT-p1 dilanjutkan dari model NERGrit; entity-level F1 strict, rata-rata ± simpangan baku. Hasil mentah ada di Drive `hasil_training/rq1_ner_20261113-*`.
+
+Layer CLAIM:
+
+| Varian | Seed test formal | Informal tulisan tangan (30) | Informal sintetis (100) |
+|---|---|---|---|
+| base | 0,630 ± 0,024 | 0,101 ± 0,021 | 0,348 ± 0,015 |
+| norm | 0,629 ± 0,017 | 0,089 ± 0,005 | 0,351 ± 0,018 |
+| aug (+1 salinan) | 0,647 ± 0,029 | 0,091 ± 0,003 | 0,624 ± 0,029 |
+| aug3 (+3 salinan) | **0,654 ± 0,034** | 0,106 ± 0,052 | **0,638 ± 0,053** |
+
+Layer entitas (PER/ORG/LOC/TIME):
+
+| Varian | Seed test formal | Informal tulisan tangan (30) | Informal sintetis (100) | NERGrit test |
+|---|---|---|---|---|
+| base | **0,803 ± 0,012** | 0,616 ± 0,087 | 0,717 ± 0,019 | 0,705 ± 0,025 |
+| norm | 0,804 ± 0,007 | 0,600 ± 0,093 | 0,726 ± 0,024 | 0,712 ± 0,027 |
+| aug | 0,792 ± 0,007 | **0,630 ± 0,072** | **0,770 ± 0,010** | **0,720 ± 0,036** |
+
+Temuan:
+
+1. **Augmentasi memperbaiki teks informal sintetis** (CLAIM 0,35 → 0,62–0,64; entitas 0,72 → 0,77) tanpa merusak teks formal (CLAIM formal naik sedikit; entitas formal turun 0,011, sekitar satu simpangan baku). Selisih F1 formal antarvarian CLAIM masih di dalam simpangan baku.
+2. **Normalisasi tidak membantu**: selisih dengan `base` ada di dalam simpangan baku pada semua uji. Normalisasi berbasis kamus tidak mengubah kata yang membuat model salah.
+3. **CLAIM pada kalimat informal tulisan tangan tetap sekitar 0,10 pada semua varian.** Penyebab utama kemungkinan ketidakcocokan panjang span, bukan ejaan: span CLAIM di 30 kalimat tulisan tangan rata-rata 3,6 token (median 3, kalimat 12,6 token), sedangkan di seed set 12,6 token (median 11, kalimat 25,8 token). Pesan pendek diberi span minimal ("diliburin", "bikin mandul", "gak berlaku lg"), model yang dilatih pada span panjang predikat-objek memperluas batas, dan F1 strict menghitung batas salah sebagai salah penuh. Prediksi uji informal belum tersimpan pada run ini (checkpoint dihapus); `ner.train` kini menyimpan prediksi tiap `extra_eval` agar bisa dianalisis, dan hipotesis ini dicek pada run berikutnya (lihat F1 longgar/tumpang tindih di `error_analysis`).
+4. Entitas pada informal tulisan tangan naik 0,014 dengan augmentasi, tetapi simpangan baku 0,07–0,09 (n = 30), jadi belum meyakinkan.
+
+Batasan: uji informal sintetis dibuat dengan generator yang sama dengan augmentasi latih (probabilitas dan seed berbeda), jadi kenaikannya sebagian bersifat dalam-distribusi dan tidak membuktikan perbaikan pada pesan nyata. Hanya uji tulisan tangan 30 kalimat yang mewakili teks nyata, dan di sana CLAIM tidak membaik. Pemilihan model memakai F1 dev (rata-rata 3 seed), bukan test:
+
+| Varian | CLAIM dev | Entitas dev |
+|---|---|---|
+| base | 0,752 ± 0,019 | **0,778 ± 0,003** |
+| norm | 0,775 ± 0,015 | 0,782 ± 0,007 |
+| aug | 0,761 ± 0,024 | 0,776 ± 0,001 |
+| aug3 | **0,802 ± 0,013** | — |
+
+Keputusan: `ner_indobert_claim` memakai `augment` 3 salinan (dev naik 0,05, konsisten dengan test). `ner_indobert_entity` tetap tanpa augmentasi: dev tidak berbeda, dan kenaikannya hanya terlihat di uji sintetis yang sejenis dengan augmentasi latih. Di antara 3 seed `aug3`, seed 42 punya dev tertinggi (0,816), jadi model terpasang tetap seed 42. Checkpoint varian RQ1 sudah dihapus, jadi model CLAIM dilatih ulang lewat `train_ner_colab.ipynb` bagian 5c (cukup layer CLAIM, seed 42); namanya sama (`ner_indobert_claim_seed42`), jadi `pipeline.yaml` tidak berubah.
