@@ -13,6 +13,6 @@ classification:
   # Folder tidak ada = mode percobaan (valid, skor 0,5), Skor model belum dikalibrasi
   checkpoint: artifacts/checkpoints/classifier/indobert_seed13
   max_length: 256
-  # Teks dengan kata kurang dari ini tidak dinilai classifier (model cenderung menjawab hoax untuk teks pendek); 0 = nonaktif
-  min_words: 30
+  # Teks dengan kata kurang dari ini tidak dinilai classifier. Di Mafindo train, 91-97% baris di bawah 100 kata berlabel hoaks,
+  min_words: 100
   device: auto

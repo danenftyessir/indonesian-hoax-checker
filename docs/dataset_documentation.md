@@ -64,6 +64,18 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
 
 - Judul duplikat di train: 141. Judul yang muncul di train dan test: 74 (sekitar 1,3% test).
 - Macro-F1 pada test: hanya bendera artefak 0,822; TF-IDF isi 0,984; TF-IDF isi dengan nama media, "[SALAH)", URL dan hashtag dibuang 0,984.
+- **Proporsi hoaks menurut jumlah kata di Mafindo train** (dihitung di Colab, 14 Nov 2026; kolom `content`):
+
+  | Jumlah kata | Baris | Proporsi hoaks |
+  |---|---|---|
+  | < 30 | 4.933 | 0,974 |
+  | 30–59 | 3.398 | 0,959 |
+  | 60–99 | 1.924 | 0,913 |
+  | 100–199 | 2.583 | 0,401 |
+  | 200–399 | 8.027 | 0,031 |
+  | 400+ | 2.774 | 0,026 |
+
+  Di bawah 100 kata hampir semua baris berlabel hoaks, jadi panjang teks saja sudah memprediksi label. Pada uji CLI, model IndoBERT menjawab hoaks (skor 0,99–1,00) untuk semua kalimat pendek dan juga untuk paragraf netral 37 kata (skor 0,90). Karena itu pipeline melewati classifier untuk teks kurang dari 100 kata (`classification.min_words` di `configs/pipeline.yaml`).
 - Pembersihan artefak tidak mengubah skor, jadi sinyalnya tersebar di kosakata dan gaya penulisan. Skor 0,984 mengukur pembedaan sumber/gaya, bukan kebenaran klaim, dan tidak boleh dibaca sebagai kemampuan mendeteksi hoaks. Selalu laporkan berdampingan dengan hasil lintas-sumber ([0001](decisions/0001-sumber-kelas-valid.md)).
 - Angka tunggal tanpa CI atau seed; belum ada pengecekan manual baris.
 
