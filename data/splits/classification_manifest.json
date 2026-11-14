@@ -1,6 +1,6 @@
 {
-  "frozen_at": "2026-11-14T11:11:18+00:00",
-  "git_commit": "4d1a5a6d40979588bf24854bf554a8625be7d769",
+  "frozen_at": "2026-11-14T11:35:37+00:00",
+  "git_commit": "626709df16262ab59e60c0404215ce20c3bcbd56",
   "note": "hash saja, tanpa teks pihak ketiga; bekukan ulang pada 18 Nov 2026 dan catat tanggal di sini",
   "files": [
     {
@@ -53,5 +53,19 @@
     "n": 600,
     "hoax": 230,
     "text_sha1_digest": "3863e3418b4803e555c66cb3edb2bda0cdbeb68431ec8c365f222a2ea5dbc958"
+  },
+  "mafindo": {
+    "dataset": "umn-cyber/mafindo-2024",
+    "hf_revision": "e9608acb2db7d70945679b2f91854cb0ebce66fe",
+    "train": {
+      "n": 23641,
+      "hoax_rate": 0.473,
+      "sorted_row_sha1_digest": "6579459c8ab0bb844aabf97705609f6453f5d43d826c57357425273a95bf791c"
+    },
+    "test": {
+      "n": 5911,
+      "hoax_rate": 0.4864,
+      "sorted_row_sha1_digest": "114efe8c3abc3e803998d35c1965226852dd8741e990225e30088885b8c80a00"
+    }
   }
 }

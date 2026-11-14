@@ -70,13 +70,11 @@ def main():
     man = {"frozen_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "git_commit": git_commit(),
            "note": "hash saja, tanpa teks pihak ketiga; bekukan ulang pada 18 Nov 2026 dan catat tanggal di sini",
            "files": [file_entry(p) for p in LOCAL_FILES]}
-    try:
-        import pandas as pd
-        m = pd.read_csv("data/manifests/mendeley_manifest.csv")
-        man["mendeley"] = {"n": int(len(m)), "hoax": int(m.y.sum()),
-                           "text_sha1_digest": hashlib.sha256("\n".join(m.text_sha1).encode()).hexdigest()}
-    except Exception as e:  # noqa: BLE001
-        man["mendeley"] = {"error": str(e)}
+    import csv  
+    with open("data/manifests/mendeley_manifest.csv", encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    man["mendeley"] = {"n": len(rows), "hoax": sum(int(r["y"]) for r in rows),
+                       "text_sha1_digest": hashlib.sha256("\n".join(r["text_sha1"] for r in rows).encode()).hexdigest()}
     if a.merge_mafindo:
         man["mafindo"] = json.loads(a.merge_mafindo.read_text())
     a.out.parent.mkdir(parents=True, exist_ok=True)
