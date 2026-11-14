@@ -5,3 +5,10 @@ ner:
   # null = mode stub: entitas kosong, supaya task 2 dan 3 bisa jalan sebelum model tersedia.
   checkpoint: artifacts/checkpoints/ner/ner_indobert_seed42
   device: auto
+
+classification:
+  # Checkpoint IndoBERT-p1 dari classification/finetune_indobert.py --save-dir (model + tokenizer).
+  # Folder tidak ada = mode percobaan (valid, skor 0,5), Skor model belum dikalibrasi
+  checkpoint: artifacts/checkpoints/classifier/indobert_seed13
+  max_length: 256
+  device: auto

@@ -52,7 +52,8 @@ def format_result(res: PipelineResult, verbose: bool) -> str:
         lines.append(f"NER{stub('ner')}: entitas={ents}; klaim inti={res.ner['core_claim']!r}")
     if res.classification is not None and want("classify"):
         c = res.classification
-        lines.append(f"Klasifikasi{stub('classify')}: {c['label']} (skor {c['confidence']:.2f})")
+        lines.append(f"Klasifikasi{stub('classify')}: {c['label']} (skor {c['confidence']:.2f}"
+                         f"{'' if 'classify' in res.stubs else ', belum dikalibrasi'})")
     if res.retrieval is not None and want("retrieve"):
         r = res.retrieval
         if r["matched_claim"] is None:

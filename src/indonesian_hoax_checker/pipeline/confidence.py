@@ -1,5 +1,5 @@
 # Penggabungan hasil klasifikasi, retrieval, dan stance menjadi indikasi kredibilitas
-# Ambang dipilih di fase 4 (RQ5)
+# threshold dipilih di fase 4 (RQ5)
 # Skor retrieval tidak dibatasi (BM25) atau -1..1 (cosine), jadi similarity_score tidak dibandingkan antar-scorer
 # Confidence stance masih softmax mentah (belum dikalibrasi); dianggap setara skor mentah sampai kalibrasi
 
@@ -52,6 +52,6 @@ def combine(
         }
     return {
         "indication": "terindikasi hoaks" if label == "hoax" else "tidak terindikasi hoaks",
-        "explanation": "Hanya dari classifier; tidak ada klaim terbantah yang cocok dan sampaikan hati-hati",
+        "explanation": "Hanya dari classifier (skor belum dikalibrasi); tidak ada klaim terbantah yang cocok, sampaikan hati-hati",
         "needs_review": False,
     }
