@@ -14,5 +14,6 @@ classification:
   checkpoint: artifacts/checkpoints/classifier/indobert_seed13
   max_length: 256
   # Teks dengan kata kurang dari ini tidak dinilai classifier. Di Mafindo train, 91-97% baris di bawah 100 kata berlabel hoaks,
-  min_words: 100
+  # 40% pada 100-199 kata dan kurang lebih 3% dari 200 kata, 0 = nonaktif
+  min_words: 200
   device: auto

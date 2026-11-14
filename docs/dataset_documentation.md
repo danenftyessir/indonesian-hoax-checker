@@ -75,7 +75,7 @@ Dataset tidak di-commit (`data/raw/`, `data/interim/`, `data/processed/` ada di 
   | 200–399 | 8.027 | 0,031 |
   | 400+ | 2.774 | 0,026 |
 
-  Di bawah 100 kata hampir semua baris berlabel hoaks, jadi panjang teks saja sudah memprediksi label. Pada uji CLI, model IndoBERT menjawab hoaks (skor 0,99–1,00) untuk semua kalimat pendek dan juga untuk paragraf netral 37 kata (skor 0,90). Karena itu pipeline melewati classifier untuk teks kurang dari 100 kata (`classification.min_words` di `configs/pipeline.yaml`).
+  Di bawah 100 kata hampir semua baris berlabel hoaks, jadi panjang teks saja sudah memprediksi label. Pada uji CLI, model IndoBERT menjawab hoaks (skor 0,99–1,00) untuk semua kalimat pendek dan juga untuk paragraf netral 37 kata (skor 0,90). Paragraf netral 112 kata (di zona 100–199 kata) masih dinilai hoaks dengan skor 0,82 (satu contoh output). Karena itu pipeline melewati classifier untuk teks kurang dari 200 kata (`classification.min_words` di `configs/pipeline.yaml`), yaitu di bawah titik tempat proporsi hoaks turun menjadi sekitar 3%.
 - Pembersihan artefak tidak mengubah skor, jadi sinyalnya tersebar di kosakata dan gaya penulisan. Skor 0,984 mengukur pembedaan sumber/gaya, bukan kebenaran klaim, dan tidak boleh dibaca sebagai kemampuan mendeteksi hoaks. Selalu laporkan berdampingan dengan hasil lintas-sumber ([0001](decisions/0001-sumber-kelas-valid.md)).
 - Angka tunggal tanpa CI atau seed; belum ada pengecekan manual baris.
 
