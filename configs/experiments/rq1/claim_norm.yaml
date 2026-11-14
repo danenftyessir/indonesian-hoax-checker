@@ -2,3 +2,4 @@
 base: configs/models/ner_indobert_claim.yaml
 name: rq1_claim_norm
 normalize: true
+augment: null   # model terpasang memakai augmentasi; varian ini tanpa

@@ -5,6 +5,7 @@
 #   artifacts/checkpoints/ner/{name}_seed{seed}/   model terbaik (F1 dev tertinggi)
 #   outputs/metrics/{name}_seed{seed}.json         skor dev dan test
 #   outputs/predictions/{name}_seed{seed}.conll    token, label gold, label prediksi (test)
+#   outputs/predictions/{name}_seed{seed}_{uji}.conll  sama, untuk tiap extra_eval
 # Ringkasan semua seed (rata-rata dan simpangan baku): outputs/metrics/{name}_summary.json
 
 import argparse
@@ -164,6 +165,13 @@ def evaluate(runner, sentences):
     return entity_scores([tags for _, tags in sentences], preds), preds
 
 
+def write_predictions(path: str, data, preds) -> None:
+    lines = []
+    for (tokens, gold), pred in zip(data, preds):
+        lines += [f"{t}\t{g}\t{p}" for t, g, p in zip(tokens, gold, pred)] + [""]
+    Path(path).write_text("\n".join(lines), encoding="utf-8")
+
+
 def run(cfg: dict, seed: int) -> dict:
     set_seed(seed)
     if cfg.get("init_from"):
@@ -203,20 +211,24 @@ def run(cfg: dict, seed: int) -> dict:
         "git_commit": git_commit(), "best_epoch": best_epoch, "data": cfg["data"],
         "dev": dev_scores, "test": test_scores,
     }
+    extra_files = {}
     # Evaluasi tambahan, mis. NERGrit test pada model tahap 2 untuk cek PER/ORG/LOC tidak turun
     for name, path in cfg.get("extra_eval", {}).items():
         if not Path(path).exists():
             print(f"[{run_name}] lewati evaluasi {name}: {path} belum ada", flush=True)
             continue
-        result.setdefault("extra", {})[name] = evaluate(runner, load_split(path, lowercase, normalize))[0]
+        extra_data = load_split(path, lowercase, normalize)
+        extra_scores, extra_preds = evaluate(runner, extra_data)
+        result.setdefault("extra", {})[name] = extra_scores
+        extra_files[name] = (extra_data, extra_preds)
     Path("outputs/metrics").mkdir(parents=True, exist_ok=True)
     Path(f"outputs/metrics/{run_name}.json").write_text(json.dumps(result, indent=2))
 
+    # Prediksi test utama dan uji tambahan disimpan untuk error analysis
     Path("outputs/predictions").mkdir(parents=True, exist_ok=True)
-    lines = []
-    for (tokens, gold), pred in zip(test, test_preds):
-        lines += [f"{t}\t{g}\t{p}" for t, g, p in zip(tokens, gold, pred)] + [""]
-    Path(f"outputs/predictions/{run_name}.conll").write_text("\n".join(lines), encoding="utf-8")
+    write_predictions(f"outputs/predictions/{run_name}.conll", test, test_preds)
+    for name, (data, preds) in extra_files.items():
+        write_predictions(f"outputs/predictions/{run_name}_{name}.conll", data, preds)
 
     print(f"[{run_name}] best epoch {best_epoch}, test F1 {test_scores['f1']:.4f}", flush=True)
     return result

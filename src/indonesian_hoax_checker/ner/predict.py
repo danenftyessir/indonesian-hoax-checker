@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 from indonesian_hoax_checker.common.schemas import Entity, NERResult
+from indonesian_hoax_checker.ner.claim_trim import DEFAULT_RULES, trim_claims
 from indonesian_hoax_checker.ner.labels import get_spans, to_iob2
 from indonesian_hoax_checker.ner.models import bilstm_crf, indobert
 from indonesian_hoax_checker.ner.train import get_device, load_tokens
@@ -45,9 +46,12 @@ def only_claim(tags: list[str]) -> list[str]:
 class NERPredictor:
     # Jenis model dikenali dari isi folder checkpoint: model.pt = BiLSTM-CRF, selain itu IndoBERT
     # claim_checkpoint (opsional) = model CLAIM terpisah: entitas PER/ORG/LOC/TIME diambil dari checkpoint_dir,
-    # span CLAIM dari claim_checkpoint, sehingga CLAIM tidak menimpa entitas di dalamnya
-    def __init__(self, checkpoint_dir: str, device: str = "auto", claim_checkpoint: str | None = None):
+    # span CLAIM dari claim_checkpoint, sehingga CLAIM tidak menimpa entitas di dalamnya.
+    # trim_claim: ujung span CLAIM dipangkas (TIME, "?"/"!") memakai entitas prediksi, lihat ner/claim_trim.py
+    def __init__(self, checkpoint_dir: str, device: str = "auto", claim_checkpoint: str | None = None,
+                 trim_claim: bool = True):
         self.claim_model = NERPredictor(claim_checkpoint, device) if claim_checkpoint else None
+        self.trim_claim = trim_claim
         path = Path(checkpoint_dir)
         self.device = get_device(device)
         if (path / "model.pt").exists():
@@ -96,8 +100,11 @@ class NERPredictor:
             for sentence in per_text:
                 tag_seq = next(tags)
                 if claim_tags is not None:
-                    entities += to_entities(text, sentence, only_claim(next(claim_tags)))
                     tag_seq = without_claim(tag_seq)
+                    claim_seq = only_claim(next(claim_tags))
+                    if self.trim_claim:
+                        claim_seq = trim_claims([tok for tok, _, _ in sentence], tag_seq, claim_seq, DEFAULT_RULES)
+                    entities += to_entities(text, sentence, claim_seq)
                 entities += to_entities(text, sentence, tag_seq)
             entities.sort(key=lambda e: (e["start"], e["end"]))
             results.append(to_result(entities))

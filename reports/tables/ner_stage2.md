@@ -1,0 +1,8 @@
+Tahap 2: seed set (test 100 kalimat formal, diperiksa manusia). Model gabungan memakai satu layer (CLAIM menimpa entitas di dalamnya); dua layer = keputusan 0012. nergrit_test dan seed_informal_test adalah F1 keseluruhan.
+
+| Model | PER | ORG | LOC | TIME | CLAIM | nergrit_test | seed_informal_test |
+|---|---|---|---|---|---|---|---|
+| BiLSTM-CRF gabungan | 0.768 ± 0.024 | 0.721 ± 0.024 | 0.704 ± 0.028 | 0.522 ± 0.103 | 0.605 ± 0.053 | 0.291 ± 0.039 | 0.080 ± 0.027 |
+| IndoBERT gabungan | 0.847 ± 0.051 | 0.700 ± 0.065 | 0.823 ± 0.065 | 0.683 ± 0.026 | 0.567 ± 0.025 | 0.420 ± 0.010 | 0.364 ± 0.023 |
+| IndoBERT layer entitas | 0.873 ± 0.018 | 0.728 ± 0.024 | 0.865 ± 0.006 | 0.783 ± 0.010 | — | 0.705 ± 0.025 | 0.616 ± 0.087 |
+| IndoBERT layer CLAIM | — | — | — | — | 0.630 ± 0.024 | — | 0.101 ± 0.021 |

@@ -11,6 +11,9 @@ data:
 extra_eval:
   seed_informal_test: data/processed/ner/seed_claim_informal_test.conll
   seed_sim_informal_test: data/processed/ner/seed_claim_test_sim_informal.conll   # test seed versi medsos sintetis
+# RQ1: +3 salinan informal, dipilih dari F1 dev (0,802 vs 0,752 tanpa augmentasi)
+augment:
+  copies: 3
 lowercase: false
 max_length: 256
 lr: 0.00003
