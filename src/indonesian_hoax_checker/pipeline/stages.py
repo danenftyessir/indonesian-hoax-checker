@@ -111,10 +111,27 @@ def _get_classifier():
     return _classifier
 
 
+def classifier_min_words() -> int:
+    # Batas kata minimum untuk classifier (classification.min_words di configs/pipeline.yaml); 0 = tanpa batas
+    # model dilatih pada artikel Mafindo; pada teks pendek ia menjawab "hoax" hampir selalu
+    try:
+        cfg = yaml.safe_load(Path(PIPELINE_CONFIG).read_text()).get("classification", {})
+    except (OSError, yaml.YAMLError):
+        return 0
+    return int(cfg.get("min_words", 0) or 0)
+
+
+def classifier_too_short(text: str) -> bool:
+    n = classifier_min_words()
+    return bool(n) and len(text.split()) < n
+
+
 def run_classify(text: str, ner: NERResult | None = None) -> ClassificationResult:
     clf = _get_classifier()
     if clf is not None:
         STUB_STAGES.discard("classify")
+        if classifier_too_short(text):
+            return {"label": "valid", "confidence": 0.5}  # tidak tahu; diteruskan ke tinjauan manusia
         return clf(text)
     return {"label": "valid", "confidence": 0.5}
 

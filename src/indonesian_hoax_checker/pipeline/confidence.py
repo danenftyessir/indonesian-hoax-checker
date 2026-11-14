@@ -26,6 +26,7 @@ def combine(
     classification: ClassificationResult,
     retrieval: RetrievalResult,
     stance: StanceResult | None,
+    classifier_note: str | None = None,
 ) -> Verdict:
     label, conf = classification["label"], classification["confidence"]
 
@@ -47,7 +48,7 @@ def combine(
     if conf < REVIEW_THRESHOLD:
         return {
             "indication": "perlu tinjauan manusia",
-            "explanation": f"Keyakinan classifier ({conf:.2f}) di bawah ambang {REVIEW_THRESHOLD}",
+            "explanation": classifier_note or f"Keyakinan classifier ({conf:.2f}) di bawah ambang {REVIEW_THRESHOLD}",
             "needs_review": True,
         }
     return {
