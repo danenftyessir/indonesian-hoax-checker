@@ -13,9 +13,12 @@ NLP-based Indonesian hoax detection and claim verification. Research-oriented re
 
 ```bash
 python -m venv .venv
-pip install -e . -r requirements/dev.txt
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -e ".[training]" -r requirements/dev.txt
 pytest
 ```
+
+`[training]` is required to run the CLI: NER imports `torchcrf` (pytorch-crf), which is only listed in the `training` extra.
 
 Model training runs in Colab notebooks under `notebooks/` (NER: `notebooks/02_ner/train_ner_colab.ipynb`); the notebooks only call code in `src/`.
 
