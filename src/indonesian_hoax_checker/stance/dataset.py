@@ -112,18 +112,26 @@ def convert_brin(path: str | Path, min_fact_chars: int = 20) -> list[dict[str, A
     return rows
 
 
-def convert_team(path: str | Path) -> list[dict[str, Any]]:
+def convert_team(path: str | Path, include_unverified: bool = False) -> list[dict[str, Any]]:
     """Anotasi tim (data/annotations/claim_verification/stance_pairs.jsonl): baris yang sudah
-    berlabel final (`label` terisi) saja; validasi label dan dua annotator."""
+    berlabel final (`label` terisi) saja; validasi label dan dua annotator.
+
+    include_unverified=True: untuk analisis internal sebelum verifikasi selesai. Baris dengan kurang
+    dari dua annotator ikut dikonversi dengan source `team_draft` (bukan `team`), supaya hasilnya
+    tidak tertukar dengan set uji final. Baris tanpa hypothesis tetap dilewati."""
     rows = []
     for r in read_jsonl(path):
         if not r.get("label"):
             continue
         ann = r.get("annotators") or []
         if len(ann) < 2:
-            raise ValueError(f"{r.get('pair_id')}: butuh dua annotator, ada {ann}")
+            if not include_unverified:
+                raise ValueError(f"{r.get('pair_id')}: butuh dua annotator, ada {ann}")
+            if not (r.get("hypothesis") or "").strip():
+                continue
         rows.append(
-            make_pair(r["pair_id"], r["premise"], r["hypothesis"], r["label"], "team", ann,
+            make_pair(r["pair_id"], r["premise"], r["hypothesis"], r["label"],
+                      "team" if len(ann) >= 2 else "team_draft", ann,
                       premise_claim_id=r.get("premise_claim_id"))
         )
     return rows
@@ -147,13 +155,16 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("input")
     p.add_argument("output")
     p.add_argument("--split-name", default="", help="untuk indonli: train/val/test_lay/test_expert")
+    p.add_argument("--include-unverified", action="store_true",
+                   help="untuk team: ikutkan pasangan yang belum punya dua annotator (source=team_draft); "
+                        "hasil evaluasinya indikatif, bukan angka laporan")
     args = p.parse_args(argv)
     if args.source == "indonli":
         rows = convert_indonli(args.input, args.split_name)
     elif args.source == "brin":
         rows = convert_brin(args.input)
     else:
-        rows = convert_team(args.input)
+        rows = convert_team(args.input, args.include_unverified)
     n = write_jsonl(rows, args.output)
     print(json.dumps({"written": n, "labels": label_counts(rows), "negation_rate": negation_stats(rows)},
                      ensure_ascii=False, indent=2))

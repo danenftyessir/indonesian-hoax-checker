@@ -49,9 +49,15 @@ class RetrievalCandidate(TypedDict):
     score: float  # BM25 (tidak dibatasi) atau cosine (-1..1); lihat `scorer`
 
 
+# Field opsional (ditambah 15 Nov 2026, pipeline/stages.py): bagian input (kalimat) yang
+# menghasilkan padanan; sama dengan teks input bila input satu kalimat.
+class _RetrievalOptional(TypedDict, total=False):
+    query_segment: str
+
+
 # `candidates` terurut dari skor tertinggi, panjang <= top_k, kosong bila tidak ada yang
 # lolos ambang. Tiga field pertama = kandidat pertama atau None (kompatibel dengan draf lama).
-class RetrievalResult(TypedDict):
+class RetrievalResult(_RetrievalOptional):
     matched_claim: str | None
     clarification: str | None
     similarity_score: float | None
@@ -59,8 +65,15 @@ class RetrievalResult(TypedDict):
     scorer: Literal["bm25", "embedding"]
 
 
+# Field opsional: `segment` = bagian input yang dinilai; `note` = alasan hasil `supports` tidak
+# boleh dipakai sebagai verdict otomatis (mis. entitas input tidak ada di klaim terbantah).
+class _StanceOptional(TypedDict, total=False):
+    segment: str
+    note: str
+
+
 # Stance klaim input (hypothesis) terhadap klaim terbantah (premise), lihat configs/labels.yaml
-class StanceResult(TypedDict):
+class StanceResult(_StanceOptional):
     label: StanceLabel
     confidence: float
     claim_id: str | None  # klaim terbantah yang dinilai; None bila tidak ada kandidat

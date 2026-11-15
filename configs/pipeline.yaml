@@ -34,6 +34,23 @@ retrieval:
   # Cek di 44 parafrasa dev (draf LLM, belum diverifikasi): 42 lolos pada 0,837, hanya 36 pada 0,848.
   # Untuk BM25 (retrieval_bm25.yaml) set null.
   min_score: 0.837
+  # true: untuk input multi-kalimat, tiap kalimat juga dijadikan kueri dan padanan berskor tertinggi
+  # yang dipakai (run_retrieve). Tanpa ini klaim hoaks yang terselip di teks panjang tenggelam:
+  # teks 200 kata berisi satu kalimat hoaks dicocokkan ke klaim yang tidak berkaitan.
+  segment_queries: true
+  # Teks multi-kalimat di atas sekian kata tidak dijadikan kueri utuh; hanya kalimat-kalimatnya.
+  # Pada 60 artikel berita valid buatan, semua `supports` palsu (4) berasal dari teks penuh 100+ kata.
+  full_text_max_words: 30
+  # Skor padanan setinggi ini = semirip judul klaim itu sendiri (skor terendah judul asli di set dev
+  # 0,870). Bila padanan sekuat ini tetapi stance tidak memastikan, hasilnya tinjauan manusia, bukan
+  # verdict classifier. Pada 204 input tanpa padanan (144 kueri no_match + 60 artikel valid buatan)
+  # skor tertinggi 0,847, jadi aturan ini tidak pernah terpicu di sana. Untuk BM25 set null.
+  strong_match_score: 0.87
+  # Span CLAIM dari NER sebagai kueri tambahan: DITOLAK (15 Nov 2026). Span CLAIM membuang subjek
+  # sehingga cocok dengan klaim entitas lain: parafrasa test 88 -> 83 benar + 2 verdict ke klaim yang
+  # salah; parafrasa dev 42 -> 39 + 1 salah. Bingkai laporan ("beredar kabar bahwa X") ditangani
+  # orchestrator.strip_report_frame, yang mempertahankan subjek.
+  claim_span_queries: false
 
 stance:
   # premise = klaim terbantah teratas, hypothesis = teks input penuh (lihat orchestrator.input_claim).
@@ -48,4 +65,16 @@ stance:
   # supports palsu di no_match test tetap 7/100 sebelum ambang, 1 -> 0 sesudah ambang.
   # Normalisasi teks informal (preprocessing/normalize.py) diuji juga dan tidak membantu.
   bidirectional: true
+  # `supports` yang hanya muncul di SATU arah harus berkeyakinan minimal sebesar ini. Pada parafrasa
+  # dev+test, 15 `supports` satu-arah yang benar semuanya >= 0,75; dua verdict salah yang ditemukan
+  # uji kasus tricky (entitas ditukar 0,54; teks panjang 0,48) ada di bawahnya. 0 = tanpa gerbang.
+  one_way_min_confidence: 0.6
+  # Bagian input yang lebih panjang dari ini (kata) hanya boleh `supports` bila DUA arah sepakat.
+  # Pada 60 artikel berita valid buatan (6 kalimat), tiga `supports` palsu (0,69-0,71) semuanya
+  # satu-arah dari teks panjang; aturan ini membuangnya tanpa mengurangi hoaks terselip yang
+  # terdeteksi (48 dari 60). null = tanpa batas panjang.
+  one_way_max_words: 30
+  # true: `supports` ditahan (tinjauan manusia) bila input menyebut PER/ORG/LOC yang tidak ada di
+  # klaim terbantah maupun klarifikasinya. Memblokir 0/100 parafrasa test dan 1/44 parafrasa dev.
+  entity_guard: true
   device: auto

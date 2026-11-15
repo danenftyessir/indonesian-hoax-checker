@@ -34,3 +34,14 @@ def test_explanation_reflects_retrieval_evidence():
     with_match = combine(cls, MATCH, {"label": "unrelated", "confidence": 0.9, "claim_id": "1"})
     assert "dinilai tidak berkaitan" in with_match["explanation"]
     assert "tidak ada klaim terbantah yang cocok" in combine(cls, NO_MATCH, None)["explanation"]
+
+
+def test_strong_match_without_stance_decision_goes_to_review():
+    unrelated = {"label": "unrelated", "confidence": 0.9, "claim_id": "1"}
+    confident = {"label": "valid", "confidence": 0.99}
+    assert combine(confident, MATCH, unrelated)["indication"] == "tidak terindikasi hoaks"
+    held = combine(confident, MATCH, unrelated, None, False, True)
+    assert held["needs_review"] and "sangat mirip" in held["explanation"]
+    assert combine(confident, NO_MATCH, None, None, False, True)["indication"] == "tidak terindikasi hoaks"
+    supports = {"label": "supports", "confidence": 0.9, "claim_id": "1"}
+    assert combine(confident, MATCH, supports, None, False, True)["indication"] == "kredibilitas rendah"

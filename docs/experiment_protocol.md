@@ -311,4 +311,112 @@ Normalisasi teks informal sebelum stance (`preprocessing/normalize.py`) tidak me
 
 ### CLI pada `data/demo_cases.txt` (24 kasus)
 
-8 verdict otomatis "kredibilitas rendah", semuanya mengarah ke klaim Komdigi yang sesuai (termasuk 3 teks informal); 16 kasus "perlu tinjauan manusia". Kasus demo dipakai saat memilih aturan, jadi ini pemeriksaan kewajaran, bukan hasil evaluasi. Semua kasus demo di bawah 200 kata, jadi classifier dilewati di semuanya (`classification.min_words`); dengan checkpoint demo `indobert_seed13` terpasang, tidak ada tahap yang berjalan sebagai stub. Dua teks 200 kata lebih dari `ner_cli_test_colab.ipynb` dinilai `valid` (1,00) dan `hoax` (0,99).
+Dengan aturan 14 Nov (dua arah, tanpa gerbang): 8 verdict otomatis "kredibilitas rendah", termasuk 3 teks informal ber-`supports` 0,49-0,53. Dengan aturan akhir 15 Nov (gerbang satu-arah 0,6): **6** "kredibilitas rendah" (3 judul persis, 2 parafrasa, 1 informal berbingkai "katanya"), 18 "perlu tinjauan manusia"; semuanya mengarah ke klaim Komdigi yang sesuai, tanpa tahap stub. Dua teks informal kembali ke tinjauan: itu harga gerbang yang membuang dua verdict salah pada kasus tricky. Semua kasus demo di bawah 200 kata, jadi classifier dilewati di semuanya. Kasus demo dipakai saat memilih aturan, jadi ini pemeriksaan kewajaran, bukan hasil evaluasi.
+
+
+## Uji kasus tricky dan teks panjang (2026-11-15)
+
+Dijalankan setelah classifier demo (`indobert_seed13`) terpasang, sehingga tidak ada tahap stub. Aturan yang lahir dari uji ini ada di [0013](decisions/0013-penyambungan-retrieval-dan-stance-di-pipeline.md) butir 4-16. **Semua set di bagian ini dipakai untuk memilih aturan**, jadi angkanya pemeriksaan kewajaran, bukan hasil evaluasi; parafrasa adalah draf LLM yang belum diverifikasi manusia.
+
+### Yang ditemukan dan diperbaiki
+
+| Temuan | Contoh | Perbaikan |
+|---|---|---|
+| `supports` satu-arah berkeyakinan rendah menghasilkan verdict salah | "Shell batasi pembelian BBM di semua SPBU" → `supports` 0,54 terhadap klaim Pertamina | gerbang 0,6 untuk `supports` satu-arah + pengaman entitas |
+| Klaim yang terselip di teks multi-kalimat tidak ditemukan atau dicocokkan ke klaim lain | 200 kata berita + satu kalimat hoaks → cocok ke "Tautan Lowongan Kerja Dinas Perhubungan" | kueri per kalimat |
+| Teks penuh yang panjang memberi `supports` palsu | 4 dari 60 artikel valid buatan, semuanya dari teks penuh 100+ kata | teks multi-kalimat > 30 kata tidak dijadikan kueri utuh; `supports` satu-arah hanya untuk bagian ≤ 30 kata |
+| Kalimat lain di sekitar klaim dinilai `refutes`/`supports` karena berbagi tokoh | 14 dari 60 hoaks terselip tertahan | stance hanya pada bagian yang cocok |
+| Artikel cek fakta dinilai `supports` | 26 dari 40 klarifikasi Komdigi | penanda bantahan menahan verdict |
+| Bingkai laporan membuat stance `unrelated` | "Selain itu beredar kabar bahwa X" | bingkai dibuang untuk kueri tambahan dan untuk stance |
+| Padanan kuat tertutup verdict classifier | teks 200 kata lebih, stance gagal → "tidak terindikasi hoaks" | skor ≥ 0,87 + stance `unrelated` → tinjauan manusia |
+| Tanda `[STUB]` palsu pada stance saat tidak ada padanan | teks tanpa klaim cocok | tanda stub dilepas bila model stance memang tersedia |
+| Config dibaca dengan encoding bawaan Windows | komentar non-ASCII di `pipeline.yaml` bisa menggagalkan CLI | selalu UTF-8 |
+| CLI hanya jalan dari root repo | dipanggil dari folder lain → semua tahap stub | path dicari juga dari root repo |
+| Keluaran yang di-pipe gagal pada karakter di luar encoding konsol | emoji di input | karakter yang tidak bisa ditulis diganti, bukan galat |
+
+Opsi yang dicoba dan **ditolak**: span CLAIM dari NER sebagai kueri tambahan (parafrasa test 88 → 83 benar, 2 verdict ke klaim yang salah; parafrasa dev 42 → 39, 1 salah), karena span CLAIM membuang subjek. Normalisasi teks informal sebelum stance juga tidak membantu (lihat bagian sebelumnya).
+
+### Hasil dengan aturan akhir
+
+"Benar" = verdict "kredibilitas rendah" dengan klaim teratas termasuk gold. "Salah cap" = "kredibilitas rendah" pada input yang tidak mengulang klaim, atau dengan klaim yang salah.
+
+| Set | n | Benar | Salah cap | Catatan |
+|---|---|---|---|---|
+| Parafrasa test (draf LLM) | 100 | 88 | 0 | 7 tidak lolos ambang retrieval, 5 `unrelated` |
+| Parafrasa dev (draf LLM) | 44 | 42 | 0 | |
+| Judul asli test (50 pertama) | 50 | 46 | 0 | 4 `unrelated`, kini berpenjelasan "klaim sangat mirip" |
+| Kueri `no_match` test | 100 | - | 0 | 8 lolos ambang retrieval, tidak ada `supports` |
+| Kueri `no_match` dev | 44 | - | 0 | 5 lolos ambang |
+| Hoaks terselip: parafrasa di antara 4 kalimat berita valid | 60 | 56 | 0 | sebelum aturan akhir: 42 |
+| Artikel berita valid buatan: 6 kalimat valid | 60 | - | 0 | 22 punya padanan (skor ≤ 0,847), tidak ada `supports`; sebelum aturan akhir 3 `supports` palsu yang hanya tertahan pengaman entitas |
+| Artikel cek fakta: `clarification` Komdigi split test | 40 | - | 0 | 26 `supports`, semuanya tertahan penanda bantahan |
+
+Kalimat berita valid pada dua set buatan berasal dari kueri `no_match` test dan dev (144 kalimat pembuka berita Mafindo), jadi set itu tidak independen dari set `no_match`.
+
+Skor padanan E5 pada 204 input tanpa padanan (144 `no_match` + 60 artikel valid): maksimum 0,847. Padanan yang benar: median 0,87, judul asli minimum 0,869.
+
+### Kasus tricky (55 kasus, satu per satu)
+
+Tanpa galat; 13 "kredibilitas rendah", 39 "perlu tinjauan manusia", 3 verdict classifier. Median 1,6 detik per input setelah model dimuat (CPU); teks 5.000 kata 13 detik.
+
+| Kelompok | Perilaku |
+|---|---|
+| Judul persis, huruf besar semua, huruf kecil semua, spasi/baris baru berlebih, "???" di akhir, bentuk pertanyaan, tag HTML, karakter kontrol, emoji, typo berat, klaim + URL | "kredibilitas rendah", klaim benar |
+| Dua kalimat (satu hoaks, satu netral); hoaks di tengah pesan tiga baris; "katanya X"; "beredar kabar bahwa X" | "kredibilitas rendah", klaim benar |
+| Negasi ("tidak", "bukan", negasi ganda), "... itu hoaks", awalan "[HOAKS]", laporan bantahan, klaim diikuti "faktanya ..." | tinjauan manusia; klaim terbantah tetap ditampilkan |
+| Entitas ditukar (Shell, air jeruk, Puan), angka diubah (Rp23 triliun), tanggal diubah, peristiwa dibalik (gaji turun) | tinjauan manusia |
+| Berita benar, fiksi, opini, salam, satir, satu kata, tanda baca saja, angka, emoji saja, URL saja, aksara Arab, bahasa Inggris, token 6.000 huruf | tinjauan manusia; tanpa padanan untuk input tanpa isi |
+| 199 kata vs 200 kata | classifier dilewati vs dipakai |
+| Artikel cek fakta 200 kata lebih | tinjauan manusia (penanda bantahan), bukan "kredibilitas rendah" |
+
+Yang **tidak** tertangani (masuk tinjauan, tidak salah cap): kutipan langsung dalam tanda petik ("Kata tetangga saya, \"...\""), pesan berantai bergaya bebas, satu kalimat berisi dua klaim, bahasa Jawa, tulisan leet. Yang bisa **lolos**: hoaks yang menyatu dengan kalimat panjang tanpa tanda baca di dalam teks 200 kata lebih, karena verdict lalu datang dari classifier saja.
+
+### Tes otomatis
+
+- `tests/unit/test_pipeline_robustness.py` dan `tests/unit/test_confidence.py`: aturan di atas dengan model tiruan dan config stub (cepat, tanpa checkpoint).
+- `tests/integration/test_cli_end_to_end.py`: 74 kasus dengan model sungguhan, termasuk CLI sebagai proses terpisah dari folder lain, input di-pipe, dan tiap `--task`. Dilewati secara bawaan; jalankan dengan `HOAX_CHECKER_E2E=1`.
+
+
+## Ablasi RQ3 dan RQ4 indikatif, dijalankan lokal (2026-11-15)
+
+Dijalankan di CPU dari repo ini, tanpa Colab/Kaggle. Ringkasan mentah: `reports/tables/task3_rq3_rq4_draft.json`. **Parafrasa dan pasangan stance adalah draf LLM yang belum diverifikasi manusia** (`n_draft_queries = 100`, `source = team_draft`); angka di bawah untuk arah kerja, bukan untuk dikutip sebagai hasil akhir.
+
+### RQ3: retrieval dengan dan tanpa filter entitas
+
+300 kueri test (100 judul asli, 100 parafrasa, 100 `no_match`). Ambang tolak dicari di set dev (`best_rejection_threshold`) lalu dipakai apa adanya di test. Entitas kueri dan basis klaim = prediksi NER seed 42.
+
+| Run | success@1 judul asli | success@1 parafrasa | success@10 parafrasa | MRR parafrasa | `no_match` ditolak | kueri berpadanan ikut tertolak | ambang (dev) |
+|---|---|---|---|---|---|---|---|
+| BM25 | 1,000 | 0,980 | 0,990 | 0,981 | 0,97 | 0,38 | 38,04 |
+| BM25 + filter entitas | 1,000 | 0,970 | 0,980 | 0,971 | 0,97 | 0,38 | 37,99 |
+| E5 | 1,000 | 0,950 | 1,000 | 0,972 | 1,00 | 0,10 | 0,848 |
+| E5 + filter entitas | 1,000 | 0,950 | 0,990 | 0,968 | 0,99 | 0,05 | 0,840 |
+
+Bacaan sementara:
+
+- **Filter entitas tidak menaikkan success@k** (BM25 sedikit turun, E5 tetap). Pengaruhnya hanya ke ambang tolak E5 (kueri berpadanan yang ikut tertolak 0,10 → 0,05).
+- BM25 unggul tipis pada success@1 parafrasa, tetapi parafrasa draf dekat secara leksikal dengan judulnya, jadi ini menguntungkan BM25. Pada penolakan kueri tanpa padanan E5 jauh lebih baik: skor BM25 naik dengan panjang kueri sehingga 38% kueri berpadanan ikut tertolak.
+- Ambang dev "terbaik" E5 (0,848) menolak 10% kueri berpadanan (parafrasa). CLI memakai 0,837 (persentil ke-90 `no_match` dev) dan menjadikan stance penyaring kedua.
+
+### RQ4: stance pada 300 pasangan tim (draf)
+
+Arah 0002 saja (premise = klaim terbantah, hypothesis = input), satu arah, tanpa aturan pipeline. Pasangan dikonversi dengan `stance.dataset team --include-unverified`.
+
+| Model | Macro-F1 | F1 supports | F1 refutes | F1 unrelated | refutes→supports | supports→refutes |
+|---|---|---|---|---|---|---|
+| Ambang similarity (0,5) | 0,370 | 0,384 | 0,000 | 0,725 | 81 | 0 |
+| mDeBERTa zero-shot | 0,638 | 0,950 | 0,437 | 0,525 | 5 | 0 |
+| IndoBERT-IndoNLI (tahap 1, seed 42) | **0,800** | 0,876 | 0,710 | 0,813 | 4 | 9 |
+
+| Subset | n | mDeBERTa macro-F1 | IndoBERT-IndoNLI macro-F1 |
+|---|---|---|---|
+| hypothesis dengan kata negasi | 57 | 0,648 | 0,644 |
+| hypothesis tanpa kata negasi | 243 | 0,530 | 0,753 |
+
+Bacaan sementara:
+
+- **Urutannya terbalik dari IndoNLI test_expert** (di sana mDeBERTa 0,776, IndoBERT-IndoNLI 0,569). Pada pasangan in-domain ini IndoBERT-IndoNLI lebih baik secara tiga kelas.
+- mDeBERTa sangat baik pada `supports` (presisi 0,95, recall 0,95) tetapi menukar `refutes` dan `unrelated`: 55 dari 100 `refutes` menjadi `unrelated` dan 43 dari 100 `unrelated` menjadi `refutes`. `refutes` tanpa kata negasi ("... adalah hoaks") hampir tidak dikenali (F1 0,08).
+- Untuk CLI, hanya `supports` yang menghasilkan verdict otomatis; `refutes` dan `unrelated` sama-sama tidak. Karena itu mDeBERTa tetap dipakai di CLI ([0013](decisions/0013-penyambungan-retrieval-dan-stance-di-pipeline.md)), tetapi pilihan itu **tidak boleh ditulis sebagai "mDeBERTa model stance terbaik"**. Setelah pasangan diverifikasi manusia: ulangi tabel ini, dan uji IndoBERT-IndoNLI di dalam pipeline (aturan dua arah dan gerbang 0,6 dipilih untuk mDeBERTa dan harus dipilih ulang).
+- Baseline similarity tidak bisa menghasilkan `refutes` sama sekali; 81 dari 100 sangkalan dinilai `supports`. Ini jawaban langsung untuk ablasi "similarity saja vs similarity + stance".
+- Yang menulis hypothesis dan yang dinilai sama-sama model bahasa; pasangan `refutes` tanpa negasi sengaja ditulis untuk menguji bias negasi. Angka ini bisa bergeser setelah manusia menyunting hypothesis.

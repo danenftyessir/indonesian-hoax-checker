@@ -16,6 +16,6 @@ Satu file per keputusan dari lembar keputusan di *Resolusi Diskusi dan Audit Dat
 | [0010](0010-klasifikasi-dan-retrieval-paralel.md) | Klasifikasi dan retrieval paralel | Final |
 | [0011](0011-keputusan-teknis-tambahan.md) | Kontrak schemas, parafrasa, base model stance, compute, akses data | Final |
 | [0012](0012-layer-entitas-dan-claim-terpisah.md) | Layer entitas dan CLAIM dilatih terpisah | Final |
-| [0013](0013-penyambungan-retrieval-dan-stance-di-pipeline.md) | Penyambungan retrieval dan stance di pipeline (E5, mDeBERTa dua arah, `refutes` ke tinjauan) | Usulan |
+| [0013](0013-penyambungan-retrieval-dan-stance-di-pipeline.md) | Penyambungan retrieval dan stance di pipeline (E5 + kueri per kalimat, mDeBERTa dua arah, pengaman verdict) | Usulan (disetujui Danendra; menunggu Dzaky dan Jonathan) |
 
 Format tiap file: Konteks, Keputusan, Alasan, Konsekuensi.

@@ -27,11 +27,28 @@ def combine(
     retrieval: RetrievalResult,
     stance: StanceResult | None,
     classifier_note: str | None = None,
+    debunk_marker: bool = False,
+    strong_match: bool = False,
 ) -> Verdict:
     label, conf = classification["label"], classification["confidence"]
 
     # Bukti dari basis klaim terbantah didahulukan utk menentukan arti skor classifier
     if retrieval["matched_claim"] is not None and stance is not None:
+        if stance["label"] == "supports" and stance.get("note"):
+            # mis. input menyebut entitas yang tidak ada di klaim terbantah (Shell vs Pertamina)
+            return {
+                "indication": "perlu tinjauan manusia",
+                "explanation": f"Input mirip klaim yang sudah dibantah, tetapi {stance['note']}; cek manual",
+                "needs_review": True,
+            }
+        if stance["label"] == "supports" and debunk_marker:
+            # artikel cek fakta atau kalimat "itu hoaks" ikut memuat klaimnya; jangan dicap mengulang hoaks
+            return {
+                "indication": "perlu tinjauan manusia",
+                "explanation": "Input memuat klaim yang sudah dibantah sekaligus penanda bantahan (mis. 'faktanya', "
+                               "'hoaks', 'tidak benar'); kemungkinan membahas atau menyangkal klaim itu",
+                "needs_review": True,
+            }
         if stance["label"] == "supports":
             return {
                 "indication": "kredibilitas rendah",
@@ -48,6 +65,17 @@ def combine(
                                "sebelum menyimpulkan",
                 "needs_review": True,
             }
+
+    if strong_match and retrieval["matched_claim"] is not None:
+        # Sampai di sini stance bukan supports/refutes. Padanan sekuat judul klaim itu sendiri tetapi
+        # stance tidak memastikan (kalimat tak langsung "beredar kabar bahwa ...", pesan berantai):
+        # verdict classifier ("tidak terindikasi hoaks") tidak boleh menutupinya.
+        return {
+            "indication": "perlu tinjauan manusia",
+            "explanation": "Ada klaim terbantah yang sangat mirip dengan input, tetapi model stance tidak dapat "
+                           "memastikan hubungannya; cocokkan dengan bantahan resmi",
+            "needs_review": True,
+        }
 
     if conf < REVIEW_THRESHOLD:
         return {

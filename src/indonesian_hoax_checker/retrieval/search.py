@@ -62,6 +62,19 @@ class Retriever:
             s = self.entity_filter.apply(s, entities)
         return s
 
+    def top_scores(self, queries: Sequence[str], entities: Sequence[Entity] | None = None) -> list[float]:
+        """Skor top-1 tiap kueri (-inf bila semua dokumen tersaring). Scorer embedding meng-encode
+        semua kueri dalam satu batch; dipakai untuk kueri per kalimat di pipeline/stages.py."""
+        if not queries or not self.claims:
+            return [float("-inf")] * len(queries)
+        if hasattr(self.scorer, "score_many"):
+            matrix = np.asarray(self.scorer.score_many(list(queries)), dtype=float)
+        else:
+            matrix = np.vstack([self.scorer.score(q) for q in queries]).astype(float)
+        if self.entity_filter is not None and entities is not None:
+            matrix = np.vstack([self.entity_filter.apply(row, entities) for row in matrix])
+        return [float(x) for x in matrix.max(axis=1)]
+
     def rank(
         self, query: str, entities: Sequence[Entity] | None = None, top_k: int | None = None
     ) -> list[tuple[int, float]]:

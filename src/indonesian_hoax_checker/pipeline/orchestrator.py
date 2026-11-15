@@ -13,9 +13,14 @@ from indonesian_hoax_checker.common.schemas import (
 )
 from indonesian_hoax_checker.pipeline import stages
 from indonesian_hoax_checker.pipeline.confidence import Verdict, combine
+from indonesian_hoax_checker.pipeline.textproc import (  # noqa: F401 - diekspor ulang untuk pemanggil lama
+    clean_text,
+    has_debunk_marker,
+    split_segments,
+    strip_report_frame,
+)
 
 TASKS = ("all", "ner", "classify", "retrieve", "stance")
-
 
 @dataclass
 class PipelineResult:
@@ -51,10 +56,19 @@ def retrieval_query(text: str, ner: NERResult | None) -> str:
 def run_pipeline(text: str, task: str = "all") -> PipelineResult:
     if task not in TASKS:
         raise ValueError(f"task tidak dikenal: {task!r}; pilihan: {TASKS}")
-    if not text.strip():
+    raw = text
+    text = clean_text(raw)
+    if not text:
         raise ValueError("teks kosong")
+    # Kalimat hanya dipakai bila input memang multi-kalimat
+    segments = split_segments(raw)
+    if len(segments) < 2:
+        segments = []
+    # Versi tanpa bingkai laporan dari tiap kalimat (atau dari teks satu kalimat) = kueri tambahan
+    frameless = [s for s in (strip_report_frame(seg) for seg in (segments or [text])) if s]
+    segments = segments + [s for s in frameless if s not in segments and s != text]
 
-    res = PipelineResult(text=text, task=task)
+    res = PipelineResult(text=text, task=task)  # text = input yang sudah dibersihkan
     need_ner = task in ("all", "ner", "retrieve", "stance")
     need_classify = task in ("all", "classify")
     need_retrieve = task in ("all", "retrieve", "stance")
@@ -65,12 +79,13 @@ def run_pipeline(text: str, task: str = "all") -> PipelineResult:
     # Klasifikasi dan retrieval dijalankan paralel
     with ThreadPoolExecutor(max_workers=2) as pool:
         f_cls = pool.submit(stages.run_classify, text, res.ner) if need_classify else None
-        f_ret = pool.submit(stages.run_retrieve, retrieval_query(text, res.ner), res.ner) if need_retrieve else None
+        f_ret = (pool.submit(stages.run_retrieve, retrieval_query(text, res.ner), res.ner, segments)
+                 if need_retrieve else None)
         res.classification = f_cls.result() if f_cls else None
         res.retrieval = f_ret.result() if f_ret else None
 
     if task in ("all", "stance"):
-        res.stance = stages.run_stance(input_claim(text, res.ner), res.retrieval)
+        res.stance = stages.run_stance(input_claim(text, res.ner), res.retrieval, segments, res.ner)
 
     note = None
     if res.classification is not None and "classify" not in stages.STUB_STAGES and stages.classifier_too_short(text):
@@ -78,7 +93,8 @@ def run_pipeline(text: str, task: str = "all") -> PipelineResult:
         note = f"Teks terlalu pendek untuk classifier (kurang dari {stages.classifier_min_words()} kata); perlu tinjauan manusia"
 
     if task == "all":
-        res.verdict = combine(res.classification, res.retrieval, res.stance, note)
+        res.verdict = combine(res.classification, res.retrieval, res.stance, note, has_debunk_marker(text),
+                              stages.is_strong_match(res.retrieval))
 
     ran = {
         "ner": res.ner is not None,

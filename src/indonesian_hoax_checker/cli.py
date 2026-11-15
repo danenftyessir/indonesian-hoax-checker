@@ -16,6 +16,10 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Pemeriksa hoaks bahasa Indonesia. Alat bantu penyaringan awal, bukan pemutus akhir"
         ),
+        epilog=(
+            'Teks yang diawali tanda "-" harus didahului "--", mis. hoax-checker -- "-5 derajat di Bandung". '
+            "Tanpa argumen teks: mode interaktif (satu input per baris; baris kosong atau Ctrl+D/Ctrl+Z untuk keluar)."
+        ),
     )
     parser.add_argument(
         "text",
@@ -86,9 +90,27 @@ def format_result(res: PipelineResult, verbose: bool) -> str:
             lines.append(
                 f"Stance{stub('stance')}: {res.stance['label']} (skor {res.stance['confidence']:.2f})"
             )
+            segment = res.stance.get("segment")
+            if segment and segment != res.text:
+                lines.append(f"  bagian input yang dinilai: {_shorten(segment, CLARIFICATION_CHARS)!r}")
+            if res.stance.get("note"):
+                lines.append(f"  catatan: {res.stance['note']}")
     if res.stubs:
         lines.append(f"Catatan: tahap {', '.join(res.stubs)} adalah hasil bukan prediksi model")
     return "\n".join(lines)
+
+
+def harden_streams() -> None:
+    """Jangan sampai CLI berhenti karena encoding konsol: di Windows, keluaran yang di-pipe atau
+    dialihkan ke file memakai cp1252 dan gagal pada emoji atau aksara non-Latin. Karakter yang tidak
+    bisa ditulis/dibaca diganti, bukan memicu UnicodeEncodeError/UnicodeDecodeError."""
+    for stream in (sys.stdout, sys.stderr, sys.stdin):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(errors="replace")
+            except (ValueError, OSError):
+                pass
 
 
 def run(text: str, task: str, verbose: bool) -> int:
@@ -97,11 +119,15 @@ def run(text: str, task: str, verbose: bool) -> int:
     except ValueError as err:
         print(f"Error: {err}", file=sys.stderr)
         return 2
+    except Exception as err:  # noqa: BLE001 - satu input bermasalah tidak boleh mematikan mode interaktif
+        print(f"Error: input tidak bisa diproses ({type(err).__name__}: {err})", file=sys.stderr)
+        return 1
     print(format_result(res, verbose))
     return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    harden_streams()
     args = build_parser().parse_args(argv)
     if args.text is not None:
         return run(args.text, args.task, args.verbose)
@@ -110,8 +136,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     status = 0
     while True:
         try:
-            line = input("klaim> ").strip()
-        except EOFError:
+            # prompt hanya untuk terminal; saat input di-pipe, prompt mengotori keluaran
+            line = input("klaim> " if sys.stdin.isatty() else "").strip()
+        except (EOFError, KeyboardInterrupt):
             break
         if not line:
             break

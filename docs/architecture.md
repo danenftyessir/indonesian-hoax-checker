@@ -23,12 +23,14 @@ flowchart LR
 
 | Klasifikasi | Bukti retrieval + stance | Indikasi |
 |---|---|---|
-| hoax | ada klaim mirip, stance `supports` | Kredibilitas rendah + bantahan resmi |
+| apa pun | ada klaim mirip, stance `supports` | Kredibilitas rendah + bantahan resmi |
+| apa pun | `supports`, tetapi input menyebut entitas yang tidak ada di klaim, atau memuat penanda bantahan ("faktanya", "hoaks", ...) | Tinjauan manusia (input mirip klaim tetapi isinya berubah, atau input membahas/menyangkal klaim) |
 | apa pun | ada klaim mirip, stance `refutes` | Tinjauan manusia + bantahan resmi (input tampak menyangkal hoaks). Sejak 14 Nov 2026 tidak lagi "kemungkinan benar": 5 dari 8 `refutes` di kasus demo keliru |
-| hoax / valid | tidak ada klaim mirip | Hanya dari classifier; sampaikan hati-hati |
-| skor di bawah ambang | — | Serahkan ke tinjauan manusia |
+| apa pun | klaim sangat mirip (skor ≥ 0,87), stance `unrelated` | Tinjauan manusia; verdict classifier tidak dikeluarkan |
+| hoax / valid | tidak ada klaim mirip, atau mirip lemah dan stance `unrelated` | Hanya dari classifier; sampaikan hati-hati |
+| skor di bawah ambang, atau teks di bawah 200 kata tanpa bukti | — | Serahkan ke tinjauan manusia |
 
-Ambang keyakinan dipilih di fase 4 (RQ5).
+Urutan pemeriksaan ada di `pipeline/confidence.py`; rincian dan angkanya di [0013](decisions/0013-penyambungan-retrieval-dan-stance-di-pipeline.md). Retrieval mencocokkan teks penuh dan, untuk input multi-kalimat, tiap kalimatnya; stance dinilai pada kalimat yang paling cocok. Ambang keyakinan classifier dipilih di fase 4 (RQ5).
 
 ## Kontrak data
 
@@ -89,6 +91,19 @@ python -m indonesian_hoax_checker            # mode interaktif
 | Stance | model HF `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7` | Diunduh otomatis saat pertama dipakai |
 
 Pemanggilan pertama lambat (unduh model dan embedding basis klaim). Mode interaktif memuat model sekali, jadi pakai itu untuk demo banyak kasus (`data/demo_cases.txt`).
+
+Basis klaim dibangun dari CSV Komdigi (tidak dilacak Git):
+
+```bash
+python -m indonesian_hoax_checker.retrieval.corpus data/raw/refuted_claims/komdigi_hoaks.csv data/interim/refuted_claims/claims_raw.jsonl
+python -m indonesian_hoax_checker.evaluation.splits data/interim/refuted_claims/claims_raw.jsonl --kaggle-version 396 --splits-dir /tmp/splits
+```
+
+`--splits-dir` diarahkan ke folder sementara supaya `frozen_at` di `data/splits/manifest.json` tidak berubah; SHA-256 `claims.jsonl` hasilnya harus sama dengan yang tercatat di manifest itu.
+
+Hal lain yang berguna saat demo: CLI bisa dipanggil dari folder mana pun (path di config dicari dari folder kerja lalu dari root repo); `HOAX_CHECKER_CONFIG=<path>` memakai `pipeline.yaml` lain; teks satu kata yang diawali "-" butuh pemisah `--`; satu input yang gagal diproses tidak menghentikan mode interaktif.
+
+Uji end-to-end dengan model sungguhan (72 kasus, sekitar 5 menit di CPU) dilewati secara bawaan dan dijalankan dengan `HOAX_CHECKER_E2E=1 python -m pytest tests/integration/test_cli_end_to_end.py -q`.
 
 Entitas NER sudah bisa dipakai langsung oleh task lain lewat tahap pipeline:
 

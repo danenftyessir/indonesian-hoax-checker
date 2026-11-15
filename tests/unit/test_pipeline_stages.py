@@ -125,8 +125,8 @@ def test_run_stance_bidirectional(pipeline_cfg, monkeypatch):
         def predict_batch(self, pairs):
             return [("supports", 0.9) if len(p) > len(h) else ("unrelated", 0.8) for p, h in pairs]
 
-    retrieval = stages.run_retrieve("air nanas panas sembuhkan kanker", None)
     long_input = "katanya air nanas panas bisa sembuhkan kanker, sebarkan ke keluarga"
+    retrieval = stages.run_retrieve(long_input, None)  # stance menilai bagian input yang dicocokkan retrieval
     monkeypatch.setattr(stages, "_stance_model", OneWay())
     assert stages.run_stance(long_input, retrieval)["label"] == "unrelated"
     cfg = stages._pipeline_section("retrieval")["config"]
